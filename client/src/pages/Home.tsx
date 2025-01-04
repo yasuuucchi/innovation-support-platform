@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Idea } from "@/types";
 
 export default function Home() {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const [showNewIdeaForm, setShowNewIdeaForm] = useState(false);
 
   const { data: ideas, isLoading } = useQuery<Idea[]>({
@@ -31,7 +31,7 @@ export default function Home() {
       {showNewIdeaForm && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>New Idea</CardTitle>
+            <CardTitle>新規アイデア</CardTitle>
           </CardHeader>
           <CardContent>
             <IdeaForm
@@ -46,7 +46,7 @@ export default function Home() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
-          <p>Loading ideas...</p>
+          <p>読み込み中...</p>
         ) : (
           ideas?.map((idea) => (
             <Card
@@ -59,10 +59,10 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Target: {idea.targetCustomer}
+                  ターゲット: {idea.targetCustomer}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Price: {idea.priceRange}
+                  価格帯: {idea.priceRange}
                 </p>
               </CardContent>
             </Card>
