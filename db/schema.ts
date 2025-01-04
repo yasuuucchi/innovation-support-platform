@@ -46,6 +46,9 @@ export const interviews = pgTable("interviews", {
   satisfactionScore: integer("satisfaction_score").notNull(),
   keyPhrases: jsonb("key_phrases").notNull(),
   sentiment: jsonb("sentiment").notNull(),
+  marketInsights: jsonb("market_insights").notNull(),
+  actionPlans: jsonb("action_plans").notNull(),
+  nextActions: jsonb("next_actions").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
