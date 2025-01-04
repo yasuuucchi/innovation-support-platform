@@ -18,20 +18,20 @@ export default function Home() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Innovation Platform</h1>
+        <h1 className="text-4xl font-bold">イノベーションプラットフォーム</h1>
         <Button
           onClick={() => setShowNewIdeaForm(true)}
           className="flex items-center gap-2"
         >
           <PlusCircle className="w-4 h-4" />
-          New Idea
+          新規アイデア
         </Button>
       </div>
 
       {showNewIdeaForm && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>新規アイデア</CardTitle>
+            <CardTitle>新規アイデアの登録</CardTitle>
           </CardHeader>
           <CardContent>
             <IdeaForm

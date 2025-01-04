@@ -36,20 +36,20 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create idea");
+      if (!response.ok) throw new Error("アイデアの作成に失敗しました");
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "Success",
-        description: "Your idea has been created",
+        title: "成功",
+        description: "アイデアが作成されました",
       });
       onSuccess(data);
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to create idea",
+        title: "エラー",
+        description: "アイデアの作成に失敗しました",
         variant: "destructive",
       });
     },
@@ -66,9 +66,9 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Idea Name</FormLabel>
+              <FormLabel>アイデア名</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Enter your idea name" />
+                <Input {...field} placeholder="アイデアの名前を入力してください" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -80,9 +80,9 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
           name="targetCustomer"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Target Customer</FormLabel>
+              <FormLabel>ターゲット顧客</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Who is your target customer?" />
+                <Input {...field} placeholder="誰がターゲット顧客ですか？" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -94,9 +94,9 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
           name="priceRange"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Price Range</FormLabel>
+              <FormLabel>価格帯</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="What is your price range?" />
+                <Input {...field} placeholder="想定される価格帯は？" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -108,11 +108,11 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
           name="value"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Value Proposition</FormLabel>
+              <FormLabel>提供価値</FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
-                  placeholder="What value do you provide?"
+                  placeholder="どのような価値を提供しますか？"
                   className="h-20"
                 />
               </FormControl>
@@ -126,11 +126,11 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
           name="competitors"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Competitors</FormLabel>
+              <FormLabel>競合</FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
-                  placeholder="Who are your competitors?"
+                  placeholder="競合となる企業・サービスは？"
                   className="h-20"
                 />
               </FormControl>
@@ -144,7 +144,7 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
           className="w-full"
           disabled={createIdea.isPending}
         >
-          {createIdea.isPending ? "Creating..." : "Create Idea"}
+          {createIdea.isPending ? "作成中..." : "アイデアを作成"}
         </Button>
       </form>
     </Form>
