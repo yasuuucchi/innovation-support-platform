@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
 import type { Idea } from "@/types";
 
 interface IdeaFormProps {
@@ -19,6 +20,7 @@ interface IdeaFormProps {
 }
 
 export default function IdeaForm({ onSuccess }: IdeaFormProps) {
+  const { user } = useAuth();
   const form = useForm({
     defaultValues: {
       name: "",
@@ -31,10 +33,17 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
 
   const createIdea = useMutation({
     mutationFn: async (data: Partial<Idea>) => {
+      if (!user) {
+        throw new Error("ログインが必要です");
+      }
+
       const response = await fetch("/api/ideas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          userId: user.id,
+        }),
       });
       if (!response.ok) throw new Error("アイデアの作成に失敗しました");
       return response.json();
