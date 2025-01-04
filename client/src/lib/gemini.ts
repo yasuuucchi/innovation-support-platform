@@ -2,9 +2,25 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // APIキーを取得する関数
 async function getGeminiApiKey() {
-  const response = await fetch('/vite-env');
-  const env = await response.json();
-  return env.VITE_GEMINI_API_KEY;
+  try {
+    // 絶対パスを使用してAPIエンドポイントにアクセス
+    const baseUrl = window.location.origin;
+    const response = await fetch(`${baseUrl}/vite-env`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch API key: ${response.status} ${response.statusText}`);
+    }
+
+    const env = await response.json();
+    if (!env.VITE_GEMINI_API_KEY) {
+      throw new Error("Gemini API key not found in environment");
+    }
+
+    return env.VITE_GEMINI_API_KEY;
+  } catch (error) {
+    console.error("Error fetching Gemini API key:", error);
+    throw error;
+  }
 }
 
 let genAI: GoogleGenerativeAI | null = null;
@@ -12,11 +28,13 @@ let genAI: GoogleGenerativeAI | null = null;
 // Gemini APIの初期化
 async function initializeGeminiAI() {
   if (!genAI) {
-    const apiKey = await getGeminiApiKey();
-    if (!apiKey) {
-      throw new Error("Gemini API key is not configured");
+    try {
+      const apiKey = await getGeminiApiKey();
+      genAI = new GoogleGenerativeAI(apiKey);
+    } catch (error) {
+      console.error("Failed to initialize Gemini AI:", error);
+      throw new Error("Gemini APIの初期化に失敗しました");
     }
-    genAI = new GoogleGenerativeAI(apiKey);
   }
   return genAI;
 }
@@ -77,48 +95,50 @@ export async function analyzeIdea(idea: {
 }
 
 export async function analyzeInterview(content: string) {
-  const ai = await initializeGeminiAI();
-  const model = ai.getGenerativeModel({ model: "gemini-pro" });
-
-  const prompt = `
-    あなたは製品マネージャーとして、以下のインタビュー内容を分析し、JSON形式でレポートを作成してください。
-
-    === インタビュー内容 ===
-    ${content}
-
-    === 分析要件 ===
-    以下の項目を分析し、必ずJSON形式で回答してください：
-
-    {
-      "satisfactionScore": 0から5の数値（満足度）,
-      "keyPhrases": [重要なキーフレーズを配列で],
-      "sentiment": {
-        "positive": [良かった点を配列で],
-        "negative": [改善点を配列で]
-      },
-      "marketInsights": {
-        "userNeeds": [ユーザーニーズを配列で],
-        "differentiators": [差別化ポイントを配列で],
-        "opportunities": [市場機会を配列で]
-      },
-      "actionPlans": {
-        "shortTerm": [1-2週間で実施可能な施策を配列で],
-        "midTerm": [1-3ヶ月で実施する施策を配列で],
-        "longTerm": [3ヶ月以上の長期施策を配列で]
-      },
-      "nextActions": [優先度の高い具体的なアクション3つを配列で]
-    }
-
-    注意事項：
-    1. 必ず上記のJSON形式で回答してください
-    2. 配列は空にせず、具体的な内容を含めてください
-    3. 満足度スコアは文脈から適切に判断してください
-    4. アクションプランは具体的で実行可能な内容にしてください
-    5. 余分なテキストは含めないでください
-  `;
-
   try {
+    const ai = await initializeGeminiAI();
+    const model = ai.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = `
+      あなたは製品マネージャーとして、以下のインタビュー内容を分析し、JSON形式でレポートを作成してください。
+
+      === インタビュー内容 ===
+      ${content}
+
+      === 分析要件 ===
+      以下の項目を分析し、必ずJSON形式で回答してください：
+
+      {
+        "satisfactionScore": 0から5の数値（満足度）,
+        "keyPhrases": [重要なキーフレーズを配列で],
+        "sentiment": {
+          "positive": [良かった点を配列で],
+          "negative": [改善点を配列で]
+        },
+        "marketInsights": {
+          "userNeeds": [ユーザーニーズを配列で],
+          "differentiators": [差別化ポイントを配列で],
+          "opportunities": [市場機会を配列で]
+        },
+        "actionPlans": {
+          "shortTerm": [1-2週間で実施可能な施策を配列で],
+          "midTerm": [1-3ヶ月で実施する施策を配列で],
+          "longTerm": [3ヶ月以上の長期施策を配列で]
+        },
+        "nextActions": [優先度の高い具体的なアクション3つを配列で]
+      }
+
+      注意事項：
+      1. 必ず上記のJSON形式で回答してください
+      2. 配列は空にせず、具体的な内容を含めてください
+      3. 満足度スコアは文脈から適切に判断してください
+      4. アクションプランは具体的で実行可能な内容にしてください
+      5. 余分なテキストは含めないでください
+    `;
+
+    console.log("Sending request to Gemini API...");
     const result = await model.generateContent(prompt);
+    console.log("Received response from Gemini API");
     const response = await result.response;
     let text = response.text();
 
@@ -155,25 +175,6 @@ export async function analyzeInterview(content: string) {
     };
   } catch (error) {
     console.error("Interview analysis error:", error);
-    // エラー時のフォールバック
-    return {
-      satisfactionScore: 3,
-      keyPhrases: ["データ取得エラー"],
-      sentiment: {
-        positive: [],
-        negative: ["分析中にエラーが発生しました"]
-      },
-      marketInsights: {
-        userNeeds: [],
-        differentiators: [],
-        opportunities: []
-      },
-      actionPlans: {
-        shortTerm: [],
-        midTerm: [],
-        longTerm: []
-      },
-      nextActions: ["システムエラーを確認してください"]
-    };
+    throw error;
   }
 }
