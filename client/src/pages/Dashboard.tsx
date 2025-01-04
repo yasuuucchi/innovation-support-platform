@@ -13,23 +13,29 @@ export default function Dashboard() {
   const { id } = useParams();
   const queryClient = useQueryClient();
 
+  // IDが存在しない場合のエラーハンドリング
+  if (!id) return <div>アイデアが見つかりません</div>;
+
+  const ideaId = parseInt(id);
+  if (isNaN(ideaId)) return <div>無効なIDです</div>;
+
   const { data: idea } = useQuery<Idea>({
-    queryKey: [`/api/ideas/${id}`],
+    queryKey: [`/api/ideas/${ideaId}`],
   });
 
   const { data: analysis } = useQuery<Analysis>({
-    queryKey: [`/api/analysis/${id}`],
+    queryKey: [`/api/analysis/${ideaId}`],
   });
 
   const { data: behaviorLogs } = useQuery<BehaviorLog[]>({
-    queryKey: [`/api/behavior-logs/${id}`],
+    queryKey: [`/api/behavior-logs/${ideaId}`],
   });
 
   const { data: interviews } = useQuery<Interview[]>({
-    queryKey: [`/api/interviews/${id}`],
+    queryKey: [`/api/interviews/${ideaId}`],
   });
 
-  if (!idea) return <div>Loading...</div>;
+  if (!idea) return <div>読み込み中...</div>;
 
   return (
     <div className="container mx-auto py-8">
@@ -96,10 +102,10 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <InterviewForm
-                  ideaId={parseInt(id)}
+                  ideaId={ideaId}
                   onSuccess={() => {
                     queryClient.invalidateQueries({
-                      queryKey: [`/api/interviews/${id}`],
+                      queryKey: [`/api/interviews/${ideaId}`],
                     });
                   }}
                 />
