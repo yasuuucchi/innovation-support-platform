@@ -1,5 +1,5 @@
-import pg from 'pg';
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "@db/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -8,8 +8,5 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
-export const db = drizzle(pool, { schema });
+const client = postgres(process.env.DATABASE_URL);
+export const db = drizzle(client, { schema });
