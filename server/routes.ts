@@ -1,12 +1,97 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "@db";
-import { ideas, analysis, behaviorLogs, interviews } from "@db/schema";
+import { ideas, analysis, behaviorLogs, interviews, users } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { analyzeIdea } from "../client/src/lib/gemini";
+import express from "express";
+import session from "express-session";
+import MemoryStore from "memorystore";
+import passport from "./auth";
+import bcrypt from "bcryptjs";
 
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
+  const SessionStore = MemoryStore(session);
+
+  // セッション設定
+  app.use(
+    session({
+      secret: "your-secret-key",
+      resave: false,
+      saveUninitialized: false,
+      store: new SessionStore({
+        checkPeriod: 86400000, // 24時間
+      }),
+      cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60 * 1000, // 24時間
+      },
+    })
+  );
+
+  // Passportの初期化
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // 認証関連のエンドポイント
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+
+      // ユーザー名の重複チェック
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, username));
+
+      if (existingUser.length > 0) {
+        return res.status(400).json({ message: "ユーザー名はすでに使用されています" });
+      }
+
+      // パスワードのハッシュ化
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // ユーザーの作成
+      const newUser = await db
+        .insert(users)
+        .values({
+          username,
+          password: hashedPassword,
+        })
+        .returning();
+
+      res.json({ message: "アカウントが作成されました" });
+    } catch (error) {
+      console.error("Failed to create user:", error);
+      res.status(500).json({ message: "アカウントの作成に失敗しました" });
+    }
+  });
+
+  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
+    res.json({ message: "ログインしました" });
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout(() => {
+      res.json({ message: "ログアウトしました" });
+    });
+  });
+
+  app.get("/api/auth/session", (req, res) => {
+    if (req.isAuthenticated()) {
+      res.json({ 
+        isAuthenticated: true, 
+        user: req.user 
+      });
+    } else {
+      res.json({ 
+        isAuthenticated: false, 
+        user: null 
+      });
+    }
+  });
 
   // Ideas
   app.post("/api/ideas", async (req, res) => {

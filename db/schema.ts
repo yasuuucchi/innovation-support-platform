@@ -1,5 +1,13 @@
 import { pgTable, text, serial, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { sql } from "drizzle-orm";
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").unique().notNull(),
+  password: text("password").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 export const ideas = pgTable("ideas", {
   id: serial("id").primaryKey(),
@@ -10,6 +18,7 @@ export const ideas = pgTable("ideas", {
   competitors: text("competitors").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
 });
 
 export const analysis = pgTable("analysis", {
@@ -41,11 +50,15 @@ export const interviews = pgTable("interviews", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 export type Idea = typeof ideas.$inferSelect;
 export type NewIdea = typeof ideas.$inferInsert;
 export type Analysis = typeof analysis.$inferSelect;
 export type BehaviorLog = typeof behaviorLogs.$inferSelect;
 export type Interview = typeof interviews.$inferSelect;
 
+export const insertUserSchema = createInsertSchema(users);
+export const selectUserSchema = createSelectSchema(users);
 export const insertIdeaSchema = createInsertSchema(ideas);
 export const selectIdeaSchema = createSelectSchema(ideas);
