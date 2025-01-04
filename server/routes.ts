@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { db } from "@db";
 import { ideas, analysis, behaviorLogs, interviews } from "@db/schema";
 import { eq } from "drizzle-orm";
+import { analyzeIdea } from "../client/src/lib/gemini";
 
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
@@ -11,7 +12,22 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/ideas", async (req, res) => {
     try {
       const newIdea = await db.insert(ideas).values(req.body).returning();
-      res.json(newIdea[0]);
+
+      // 新規アイデアの分析を実行
+      const analysisResult = await analyzeIdea(newIdea[0]);
+      const newAnalysis = await db.insert(analysis).values({
+        ideaId: newIdea[0].id,
+        ideaScore: analysisResult.ideaScore,
+        snsTrends: analysisResult.snsTrends,
+        marketSize: analysisResult.marketSize,
+        technicalMaturity: analysisResult.technicalMaturity,
+        personaSize: analysisResult.personaSize,
+      }).returning();
+
+      res.json({
+        ...newIdea[0],
+        analysis: newAnalysis[0]
+      });
     } catch (error) {
       console.error("Failed to create idea:", error);
       res.status(500).json({ error: "Failed to create idea" });
