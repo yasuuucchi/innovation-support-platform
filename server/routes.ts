@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { db } from "@db";
 import { ideas, analysis, behaviorLogs, interviews, users } from "@db/schema";
 import { eq } from "drizzle-orm";
-import { analyzeIdea, analyzeInterview } from "../client/src/lib/gemini";
+import { analyzeInterview } from "./gemini";
 import express from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
@@ -97,22 +97,7 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/ideas", async (req, res) => {
     try {
       const newIdea = await db.insert(ideas).values(req.body).returning();
-
-      // 新規アイデアの分析を実行
-      const analysisResult = await analyzeIdea(newIdea[0]);
-      const newAnalysis = await db.insert(analysis).values({
-        ideaId: newIdea[0].id,
-        ideaScore: analysisResult.ideaScore,
-        snsTrends: analysisResult.snsTrends,
-        marketSize: analysisResult.marketSize,
-        technicalMaturity: analysisResult.technicalMaturity,
-        personaSize: analysisResult.personaSize,
-      }).returning();
-
-      res.json({
-        ...newIdea[0],
-        analysis: newAnalysis[0],
-      });
+      res.json(newIdea[0]);
     } catch (error) {
       console.error("Failed to create idea:", error);
       res.status(500).json({ error: "Failed to create idea" });
@@ -143,16 +128,6 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Analysis
-  app.post("/api/analysis", async (req, res) => {
-    try {
-      const newAnalysis = await db.insert(analysis).values(req.body).returning();
-      res.json(newAnalysis[0]);
-    } catch (error) {
-      console.error("Failed to create analysis:", error);
-      res.status(500).json({ error: "Failed to create analysis" });
-    }
-  });
-
   app.get("/api/analysis/:ideaId", async (req, res) => {
     try {
       const ideaAnalysis = await db
@@ -205,12 +180,16 @@ export function registerRoutes(app: Express): Server {
         satisfactionScore: analysisResult.satisfactionScore,
         keyPhrases: analysisResult.keyPhrases,
         sentiment: analysisResult.sentiment,
+        marketInsights: analysisResult.marketInsights,
+        actionPlans: analysisResult.actionPlans,
+        nextActions: analysisResult.nextActions,
+        createdAt: new Date(),
       }).returning();
 
       res.json(newInterview[0]);
     } catch (error) {
       console.error("Failed to create interview:", error);
-      res.status(500).json({ error: "Failed to create interview" });
+      res.status(500).json({ error: "インタビューの分析に失敗しました" });
     }
   });
 

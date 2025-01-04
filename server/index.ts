@@ -9,21 +9,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// APIルートの前にVITE環境変数を設定するミドルウェアを追加
-app.use((req, res, next) => {
-  if (req.url === '/vite-env') {
-    const geminiApiKey = process.env.VITE_GEMINI_API_KEY;
-    if (!geminiApiKey) {
-      console.error('VITE_GEMINI_API_KEY is not set in environment variables');
-      return res.status(500).json({ error: 'API key not configured' });
-    }
-    return res.json({
-      VITE_GEMINI_API_KEY: geminiApiKey,
-    });
-  }
-  next();
-});
-
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

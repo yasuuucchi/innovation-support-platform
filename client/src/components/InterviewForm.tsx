@@ -34,8 +34,14 @@ export default function InterviewForm({ ideaId, onSuccess }: InterviewFormProps)
           ideaId,
           content: data.content,
         }),
+        credentials: "include",
       });
-      if (!response.ok) throw new Error("Failed to create interview");
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "インタビューの分析に失敗しました");
+      }
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -46,10 +52,10 @@ export default function InterviewForm({ ideaId, onSuccess }: InterviewFormProps)
       form.reset();
       onSuccess(data);
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "エラー",
-        description: "インタビュー結果の保存に失敗しました",
+        description: error.message,
         variant: "destructive",
       });
     },
