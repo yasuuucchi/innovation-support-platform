@@ -170,19 +170,41 @@ export function registerRoutes(app: Express): Server {
     try {
       const { ideaId, content } = req.body;
 
-      // Gemini APIを使用してインタビュー内容を分析
-      const analysisResult = await analyzeInterview(content);
+      // ダミーの分析結果を返す
+      const dummyAnalysis = {
+        satisfactionScore: 4,
+        keyPhrases: ["使いやすい", "効率的", "革新的"],
+        sentiment: {
+          positive: ["操作が直感的", "レスポンスが早い", "デザインが良い"],
+          negative: ["一部機能がわかりにくい", "価格が高い"]
+        },
+        marketInsights: {
+          userNeeds: ["効率的な業務管理", "データ分析", "自動化"],
+          differentiators: ["AIによる自動化", "使いやすいUI", "豊富な機能"],
+          opportunities: ["グローバル展開", "新機能の追加", "価格最適化"]
+        },
+        actionPlans: {
+          shortTerm: ["UIの改善", "バグ修正", "ユーザーフィードバックの収集"],
+          midTerm: ["新機能の開発", "パフォーマンス最適化"],
+          longTerm: ["グローバル展開", "新規市場への参入"]
+        },
+        nextActions: [
+          "ユーザーインターフェースの改善",
+          "主要機能のパフォーマンス最適化",
+          "ユーザーフィードバックシステムの実装"
+        ]
+      };
 
       // インタビュー結果をデータベースに保存
       const newInterview = await db.insert(interviews).values({
         ideaId,
         content,
-        satisfactionScore: analysisResult.satisfactionScore,
-        keyPhrases: analysisResult.keyPhrases,
-        sentiment: analysisResult.sentiment,
-        marketInsights: analysisResult.marketInsights,
-        actionPlans: analysisResult.actionPlans,
-        nextActions: analysisResult.nextActions,
+        satisfactionScore: dummyAnalysis.satisfactionScore,
+        keyPhrases: dummyAnalysis.keyPhrases,
+        sentiment: dummyAnalysis.sentiment,
+        marketInsights: dummyAnalysis.marketInsights,
+        actionPlans: dummyAnalysis.actionPlans,
+        nextActions: dummyAnalysis.nextActions,
         createdAt: new Date(),
       }).returning();
 
