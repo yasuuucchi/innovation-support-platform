@@ -78,7 +78,7 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
             <FormItem>
               <FormLabel>ユーザー名</FormLabel>
               <FormControl>
-                <Input {...field} type="text" placeholder="ユーザー名を入力" />
+                <Input {...field} type="text" placeholder="ユーザー名を入力してください" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -92,7 +92,7 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
             <FormItem>
               <FormLabel>パスワード</FormLabel>
               <FormControl>
-                <Input {...field} type="password" placeholder="パスワードを入力" />
+                <Input {...field} type="password" placeholder="パスワードを入力してください" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -106,7 +106,7 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
             <FormItem>
               <FormLabel>パスワード（確認）</FormLabel>
               <FormControl>
-                <Input {...field} type="password" placeholder="パスワードを再入力" />
+                <Input {...field} type="password" placeholder="パスワードを再入力してください" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -118,7 +118,7 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
           className="w-full"
           disabled={signup.isPending}
         >
-          {signup.isPending ? "アカウント作成中..." : "アカウント作成"}
+          {signup.isPending ? "アカウント作成中..." : "アカウントを作成"}
         </Button>
       </form>
     </Form>

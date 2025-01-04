@@ -31,13 +31,13 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("ログインに失敗しました");
+      if (!response.ok) throw new Error("認証に失敗しました");
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "ログイン成功",
-        description: "ようこそ！",
+        description: "イノベーションプラットフォームへようこそ！",
       });
       onSuccess();
     },
@@ -63,7 +63,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             <FormItem>
               <FormLabel>ユーザー名</FormLabel>
               <FormControl>
-                <Input {...field} type="text" placeholder="ユーザー名を入力" />
+                <Input {...field} type="text" placeholder="ユーザー名を入力してください" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -77,7 +77,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             <FormItem>
               <FormLabel>パスワード</FormLabel>
               <FormControl>
-                <Input {...field} type="password" placeholder="パスワードを入力" />
+                <Input {...field} type="password" placeholder="パスワードを入力してください" />
               </FormControl>
               <FormMessage />
             </FormItem>
