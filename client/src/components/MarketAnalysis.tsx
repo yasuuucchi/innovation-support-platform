@@ -23,11 +23,11 @@ interface MarketAnalysisProps {
 export default function MarketAnalysis({ analysis }: MarketAnalysisProps) {
   const marketData = [
     {
-      name: "Current Market",
+      name: "現在の市場規模",
       value: analysis.marketSize.current,
     },
     {
-      name: "Potential Market",
+      name: "潜在市場規模",
       value: analysis.marketSize.potential,
     },
   ];
@@ -36,9 +36,9 @@ export default function MarketAnalysis({ analysis }: MarketAnalysisProps) {
     <div className="grid gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>Market Size Analysis</CardTitle>
+          <CardTitle>市場規模分析</CardTitle>
           <CardDescription>
-            Current and potential market size comparison
+            現在と潜在的な市場規模の比較
           </CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
@@ -56,21 +56,21 @@ export default function MarketAnalysis({ analysis }: MarketAnalysisProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Market Growth</CardTitle>
+          <CardTitle>市場成長性</CardTitle>
           <CardDescription>
-            Compound Annual Growth Rate (CAGR): {analysis.marketSize.cagr}%
+            年間成長率（CAGR）: {analysis.marketSize.cagr}%
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h4 className="text-sm font-medium mb-1">Technical Maturity</h4>
+              <h4 className="text-sm font-medium mb-1">技術成熟度</h4>
               <p className="text-2xl font-bold">
                 {analysis.technicalMaturity}/100
               </p>
             </div>
             <div>
-              <h4 className="text-sm font-medium mb-1">Persona Size</h4>
+              <h4 className="text-sm font-medium mb-1">想定ユーザー数</h4>
               <p className="text-2xl font-bold">
                 {(analysis.personaSize / 1000000).toFixed(1)}M
               </p>

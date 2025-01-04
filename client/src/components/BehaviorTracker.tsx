@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { format } from "date-fns";
+import { ja } from "date-fns/locale";
 import type { BehaviorLog } from "@/types";
 
 interface BehaviorTrackerProps {
@@ -37,9 +38,9 @@ export default function BehaviorTracker({ logs }: BehaviorTrackerProps) {
     <div className="grid gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>User Behavior Analysis</CardTitle>
+          <CardTitle>ユーザー行動分析</CardTitle>
           <CardDescription>
-            Track user interactions and engagement over time
+            ユーザーの操作と利用状況の推移
           </CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
@@ -62,7 +63,7 @@ export default function BehaviorTracker({ logs }: BehaviorTrackerProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Events</CardTitle>
+          <CardTitle>最近のイベント</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -74,7 +75,9 @@ export default function BehaviorTracker({ logs }: BehaviorTrackerProps) {
                 <div>
                   <p className="font-medium">{log.eventType}</p>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(log.createdAt), "PP")}
+                    {format(new Date(log.createdAt), "yyyy年MM月dd日", {
+                      locale: ja,
+                    })}
                   </p>
                 </div>
                 <div className="text-sm text-muted-foreground">
