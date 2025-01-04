@@ -61,31 +61,52 @@ export async function analyzeInterview(content: string) {
   const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
   const prompt = `
-    以下のインタビュー内容を詳細に分析し、具体的なインサイトと改善提案を提供してください：
+    以下のインタビュー内容を詳細に分析し、具体的なインサイトと改善提案を提供してください。
+    回答は必ず以下のJSON形式で返してください：
 
     インタビュー内容：
     ${content}
 
-    以下の項目について分析してください：
-    1. 満足度スコア（0-5）とその根拠
-    2. 主要なキーフレーズやテーマ（優先度順）
-    3. 感情分析
-      - ポジティブな点：具体的な事例や発言を含む
-      - ネガティブな点：問題の根本原因の分析を含む
+    必要な分析項目：
+    1. 満足度評価（0-5）
+    2. キーフレーズ抽出
+    3. 感情分析（ポジティブ/ネガティブな点）
     4. 市場インサイト
-      - ユーザーニーズの深層分析
+      - ユーザーニーズ
       - 競合との差別化ポイント
-      - 潜在的な市場機会
-    5. 具体的なアクションプラン
-      - 短期的な改善施策（1-2週間で実施可能）
-      - 中期的な改善施策（1-3ヶ月で実施）
-      - 長期的な戦略提案（3ヶ月以上）
-    6. 優先度の高いネクストアクション（TOP3）
-      - 具体的なアクション内容
-      - 期待される効果
-      - 実施における注意点
+      - 市場機会
+    5. アクションプラン
+      - 短期施策（1-2週間）
+      - 中期施策（1-3ヶ月）
+      - 長期施策（3ヶ月以上）
+    6. 優先アクション（TOP3）
 
-    ※分析は具体的かつ実用的な提案を含め、各項目の関連性も考慮してください。
+    期待する出力形式：
+    {
+      "satisfactionScore": 数値,
+      "keyPhrases": ["フレーズ1", "フレーズ2", ...],
+      "sentiment": {
+        "positive": ["良かった点1", "良かった点2", ...],
+        "negative": ["改善点1", "改善点2", ...]
+      },
+      "marketInsights": {
+        "userNeeds": ["ニーズ1", "ニーズ2", ...],
+        "differentiators": ["差別化ポイント1", "差別化ポイント2", ...],
+        "opportunities": ["機会1", "機会2", ...]
+      },
+      "actionPlans": {
+        "shortTerm": ["施策1", "施策2", ...],
+        "midTerm": ["施策1", "施策2", ...],
+        "longTerm": ["施策1", "施策2", ...]
+      },
+      "nextActions": ["アクション1", "アクション2", "アクション3"]
+    }
+
+    分析の注意点：
+    - 具体的な数値や事実に基づいた分析を提供
+    - 実用的で実行可能な提案を含める
+    - ビジネスインパクトを考慮した優先順位付け
+    - 市場トレンドや競合状況を考慮
   `;
 
   try {
@@ -93,65 +114,51 @@ export async function analyzeInterview(content: string) {
     const response = await result.response;
     const text = response.text();
 
-    // テキストから構造化データを抽出
-    const analysisResult = {
-      satisfactionScore: 4,
-      keyPhrases: ["使いやすさ", "価値提供", "改善点"],
-      sentiment: {
-        positive: ["直感的なインターフェース", "サポートの充実"],
-        negative: ["読み込み速度が遅い"]
-      },
-      marketInsights: {
-        userNeeds: [],
-        differentiators: [],
-        opportunities: []
-      },
-      actionPlans: {
-        shortTerm: [],
-        midTerm: [],
-        longTerm: []
-      },
-      nextActions: [],
-      recommendations: text
-    };
-
-    // テキスト全体を解析して構造化データを更新
     try {
-      // インサイトとアクションプランをテキストから抽出
-      const sections = text.split(/\d+\./);
-
-      if (sections.length >= 6) {
-        // 市場インサイトの抽出
-        const marketSection = sections[4] || '';
-        const marketLines = marketSection.split('\n').filter(line => line.trim());
-        analysisResult.marketInsights = {
-          userNeeds: marketLines.filter(line => line.includes('ニーズ')),
-          differentiators: marketLines.filter(line => line.includes('差別化')),
-          opportunities: marketLines.filter(line => line.includes('機会'))
-        };
-
-        // アクションプランの抽出
-        const actionSection = sections[5] || '';
-        const actionLines = actionSection.split('\n').filter(line => line.trim());
-        analysisResult.actionPlans = {
-          shortTerm: actionLines.filter(line => line.includes('短期')),
-          midTerm: actionLines.filter(line => line.includes('中期')),
-          longTerm: actionLines.filter(line => line.includes('長期'))
-        };
-
-        // ネクストアクションの抽出
-        const nextActionSection = sections[6] || '';
-        analysisResult.nextActions = nextActionSection
-          .split('\n')
-          .filter(line => line.trim() && line.includes('-'))
-          .map(line => line.trim().replace('-', '').trim());
-      }
+      // Geminiの応答をJSONとしてパース
+      const parsedResponse = JSON.parse(text);
+      return {
+        satisfactionScore: parsedResponse.satisfactionScore,
+        keyPhrases: parsedResponse.keyPhrases || [],
+        sentiment: {
+          positive: parsedResponse.sentiment?.positive || [],
+          negative: parsedResponse.sentiment?.negative || []
+        },
+        marketInsights: {
+          userNeeds: parsedResponse.marketInsights?.userNeeds || [],
+          differentiators: parsedResponse.marketInsights?.differentiators || [],
+          opportunities: parsedResponse.marketInsights?.opportunities || []
+        },
+        actionPlans: {
+          shortTerm: parsedResponse.actionPlans?.shortTerm || [],
+          midTerm: parsedResponse.actionPlans?.midTerm || [],
+          longTerm: parsedResponse.actionPlans?.longTerm || []
+        },
+        nextActions: parsedResponse.nextActions || []
+      };
     } catch (parseError) {
       console.error("Failed to parse Gemini response:", parseError);
-      // パース失敗時もベースの分析結果は返す
+      // パース失敗時のフォールバック
+      return {
+        satisfactionScore: 3,
+        keyPhrases: [],
+        sentiment: {
+          positive: [],
+          negative: []
+        },
+        marketInsights: {
+          userNeeds: [],
+          differentiators: [],
+          opportunities: []
+        },
+        actionPlans: {
+          shortTerm: [],
+          midTerm: [],
+          longTerm: []
+        },
+        nextActions: []
+      };
     }
-
-    return analysisResult;
   } catch (error) {
     console.error("Gemini API error:", error);
     throw new Error("インタビューの分析中にエラーが発生しました");
