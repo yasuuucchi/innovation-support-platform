@@ -1,6 +1,25 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
+// APIキーを取得する関数
+async function getGeminiApiKey() {
+  const response = await fetch('/vite-env');
+  const env = await response.json();
+  return env.VITE_GEMINI_API_KEY;
+}
+
+let genAI: GoogleGenerativeAI | null = null;
+
+// Gemini APIの初期化
+async function initializeGeminiAI() {
+  if (!genAI) {
+    const apiKey = await getGeminiApiKey();
+    if (!apiKey) {
+      throw new Error("Gemini API key is not configured");
+    }
+    genAI = new GoogleGenerativeAI(apiKey);
+  }
+  return genAI;
+}
 
 export async function analyzeIdea(idea: {
   name: string;
@@ -9,7 +28,8 @@ export async function analyzeIdea(idea: {
   value: string;
   competitors: string;
 }) {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  const ai = await initializeGeminiAI();
+  const model = ai.getGenerativeModel({ model: "gemini-pro" });
 
   const prompt = `
     以下のビジネスアイデアを分析し、スコアとインサイトを提供してください：
@@ -34,7 +54,6 @@ export async function analyzeIdea(idea: {
     const response = await result.response;
     const text = response.text();
 
-    // 構造化されたレスポンスを返す
     return {
       ideaScore: 75,
       snsTrends: {
@@ -58,109 +77,103 @@ export async function analyzeIdea(idea: {
 }
 
 export async function analyzeInterview(content: string) {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  const ai = await initializeGeminiAI();
+  const model = ai.getGenerativeModel({ model: "gemini-pro" });
 
   const prompt = `
-    以下のインタビュー内容を詳細に分析し、具体的なインサイトと改善提案を提供してください。
-    回答は必ず以下のJSON形式で返してください：
+    あなたは製品マネージャーとして、以下のインタビュー内容を分析し、JSON形式でレポートを作成してください。
 
-    インタビュー内容：
+    === インタビュー内容 ===
     ${content}
 
-    必要な分析項目：
-    1. 満足度評価（0-5）
-    2. キーフレーズ抽出
-    3. 感情分析（ポジティブ/ネガティブな点）
-    4. 市場インサイト
-      - ユーザーニーズ
-      - 競合との差別化ポイント
-      - 市場機会
-    5. アクションプラン
-      - 短期施策（1-2週間）
-      - 中期施策（1-3ヶ月）
-      - 長期施策（3ヶ月以上）
-    6. 優先アクション（TOP3）
+    === 分析要件 ===
+    以下の項目を分析し、必ずJSON形式で回答してください：
 
-    期待する出力形式：
     {
-      "satisfactionScore": 数値,
-      "keyPhrases": ["フレーズ1", "フレーズ2", ...],
+      "satisfactionScore": 0から5の数値（満足度）,
+      "keyPhrases": [重要なキーフレーズを配列で],
       "sentiment": {
-        "positive": ["良かった点1", "良かった点2", ...],
-        "negative": ["改善点1", "改善点2", ...]
+        "positive": [良かった点を配列で],
+        "negative": [改善点を配列で]
       },
       "marketInsights": {
-        "userNeeds": ["ニーズ1", "ニーズ2", ...],
-        "differentiators": ["差別化ポイント1", "差別化ポイント2", ...],
-        "opportunities": ["機会1", "機会2", ...]
+        "userNeeds": [ユーザーニーズを配列で],
+        "differentiators": [差別化ポイントを配列で],
+        "opportunities": [市場機会を配列で]
       },
       "actionPlans": {
-        "shortTerm": ["施策1", "施策2", ...],
-        "midTerm": ["施策1", "施策2", ...],
-        "longTerm": ["施策1", "施策2", ...]
+        "shortTerm": [1-2週間で実施可能な施策を配列で],
+        "midTerm": [1-3ヶ月で実施する施策を配列で],
+        "longTerm": [3ヶ月以上の長期施策を配列で]
       },
-      "nextActions": ["アクション1", "アクション2", "アクション3"]
+      "nextActions": [優先度の高い具体的なアクション3つを配列で]
     }
 
-    分析の注意点：
-    - 具体的な数値や事実に基づいた分析を提供
-    - 実用的で実行可能な提案を含める
-    - ビジネスインパクトを考慮した優先順位付け
-    - 市場トレンドや競合状況を考慮
+    注意事項：
+    1. 必ず上記のJSON形式で回答してください
+    2. 配列は空にせず、具体的な内容を含めてください
+    3. 満足度スコアは文脈から適切に判断してください
+    4. アクションプランは具体的で実行可能な内容にしてください
+    5. 余分なテキストは含めないでください
   `;
 
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text();
+    let text = response.text();
 
-    try {
-      // Geminiの応答をJSONとしてパース
-      const parsedResponse = JSON.parse(text);
-      return {
-        satisfactionScore: parsedResponse.satisfactionScore,
-        keyPhrases: parsedResponse.keyPhrases || [],
-        sentiment: {
-          positive: parsedResponse.sentiment?.positive || [],
-          negative: parsedResponse.sentiment?.negative || []
-        },
-        marketInsights: {
-          userNeeds: parsedResponse.marketInsights?.userNeeds || [],
-          differentiators: parsedResponse.marketInsights?.differentiators || [],
-          opportunities: parsedResponse.marketInsights?.opportunities || []
-        },
-        actionPlans: {
-          shortTerm: parsedResponse.actionPlans?.shortTerm || [],
-          midTerm: parsedResponse.actionPlans?.midTerm || [],
-          longTerm: parsedResponse.actionPlans?.longTerm || []
-        },
-        nextActions: parsedResponse.nextActions || []
-      };
-    } catch (parseError) {
-      console.error("Failed to parse Gemini response:", parseError);
-      // パース失敗時のフォールバック
-      return {
-        satisfactionScore: 3,
-        keyPhrases: [],
-        sentiment: {
-          positive: [],
-          negative: []
-        },
-        marketInsights: {
-          userNeeds: [],
-          differentiators: [],
-          opportunities: []
-        },
-        actionPlans: {
-          shortTerm: [],
-          midTerm: [],
-          longTerm: []
-        },
-        nextActions: []
-      };
+    // レスポンスからJSONを抽出
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("JSON response not found in the API response");
     }
+
+    const jsonText = jsonMatch[0];
+    console.log("Parsed JSON response:", jsonText);
+
+    const parsedResponse = JSON.parse(jsonText);
+
+    // 構造の検証と型の保証
+    return {
+      satisfactionScore: Number(parsedResponse.satisfactionScore) || 3,
+      keyPhrases: Array.isArray(parsedResponse.keyPhrases) ? parsedResponse.keyPhrases : [],
+      sentiment: {
+        positive: Array.isArray(parsedResponse.sentiment?.positive) ? parsedResponse.sentiment.positive : [],
+        negative: Array.isArray(parsedResponse.sentiment?.negative) ? parsedResponse.sentiment.negative : []
+      },
+      marketInsights: {
+        userNeeds: Array.isArray(parsedResponse.marketInsights?.userNeeds) ? parsedResponse.marketInsights.userNeeds : [],
+        differentiators: Array.isArray(parsedResponse.marketInsights?.differentiators) ? parsedResponse.marketInsights.differentiators : [],
+        opportunities: Array.isArray(parsedResponse.marketInsights?.opportunities) ? parsedResponse.marketInsights.opportunities : []
+      },
+      actionPlans: {
+        shortTerm: Array.isArray(parsedResponse.actionPlans?.shortTerm) ? parsedResponse.actionPlans.shortTerm : [],
+        midTerm: Array.isArray(parsedResponse.actionPlans?.midTerm) ? parsedResponse.actionPlans.midTerm : [],
+        longTerm: Array.isArray(parsedResponse.actionPlans?.longTerm) ? parsedResponse.actionPlans.longTerm : []
+      },
+      nextActions: Array.isArray(parsedResponse.nextActions) ? parsedResponse.nextActions : []
+    };
   } catch (error) {
-    console.error("Gemini API error:", error);
-    throw new Error("インタビューの分析中にエラーが発生しました");
+    console.error("Interview analysis error:", error);
+    // エラー時のフォールバック
+    return {
+      satisfactionScore: 3,
+      keyPhrases: ["データ取得エラー"],
+      sentiment: {
+        positive: [],
+        negative: ["分析中にエラーが発生しました"]
+      },
+      marketInsights: {
+        userNeeds: [],
+        differentiators: [],
+        opportunities: []
+      },
+      actionPlans: {
+        shortTerm: [],
+        midTerm: [],
+        longTerm: []
+      },
+      nextActions: ["システムエラーを確認してください"]
+    };
   }
 }
