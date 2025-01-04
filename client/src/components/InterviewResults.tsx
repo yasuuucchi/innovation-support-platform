@@ -54,7 +54,7 @@ export default function InterviewResults({ interviews }: InterviewResultsProps) 
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-medium mb-2">ポジティブな点</h4>
+                  <h4 className="text-sm font-medium mb-2">良かった点</h4>
                   <ul className="list-disc list-inside text-sm text-muted-foreground">
                     {interview.sentiment.positive.map((point, i) => (
                       <li key={i}>{point}</li>

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { db } from "@db";
 import { ideas, analysis, behaviorLogs, interviews, users } from "@db/schema";
 import { eq } from "drizzle-orm";
-import { analyzeIdea } from "../client/src/lib/gemini";
+import { analyzeIdea, analyzeInterview } from "../client/src/lib/gemini";
 import express from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
@@ -81,14 +81,14 @@ export function registerRoutes(app: Express): Server {
 
   app.get("/api/auth/session", (req, res) => {
     if (req.isAuthenticated()) {
-      res.json({ 
-        isAuthenticated: true, 
-        user: req.user 
+      res.json({
+        isAuthenticated: true,
+        user: req.user,
       });
     } else {
-      res.json({ 
-        isAuthenticated: false, 
-        user: null 
+      res.json({
+        isAuthenticated: false,
+        user: null,
       });
     }
   });
@@ -111,7 +111,7 @@ export function registerRoutes(app: Express): Server {
 
       res.json({
         ...newIdea[0],
-        analysis: newAnalysis[0]
+        analysis: newAnalysis[0],
       });
     } catch (error) {
       console.error("Failed to create idea:", error);
@@ -193,7 +193,20 @@ export function registerRoutes(app: Express): Server {
   // Interviews
   app.post("/api/interviews", async (req, res) => {
     try {
-      const newInterview = await db.insert(interviews).values(req.body).returning();
+      const { ideaId, content } = req.body;
+
+      // Gemini APIを使用してインタビュー内容を分析
+      const analysisResult = await analyzeInterview(content);
+
+      // インタビュー結果をデータベースに保存
+      const newInterview = await db.insert(interviews).values({
+        ideaId,
+        content,
+        satisfactionScore: analysisResult.satisfactionScore,
+        keyPhrases: analysisResult.keyPhrases,
+        sentiment: analysisResult.sentiment,
+      }).returning();
+
       res.json(newInterview[0]);
     } catch (error) {
       console.error("Failed to create interview:", error);
