@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from 'multer';
+import { extractIdeaFromText, extractIdeaFromPdf, saveExtractedIdea } from './idea-parser';
 import { db } from "@db";
 import { ideas, analysis, behaviorLogs, interviews, projectRisks, projectMetrics, users, recommendations } from "@db/schema";
 import { eq } from "drizzle-orm";
@@ -500,6 +502,47 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Failed to fetch recommendations:", error);
       res.status(500).json({ error: "レコメンデーションの取得に失敗しました" });
+    }
+  });
+
+  // ファイルアップロードの設定
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB制限
+    },
+  });
+
+  // テキストファイルからアイデアを抽出
+  app.post("/api/ideas/extract-from-text", async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: "テキストが必要です" });
+      }
+
+      const ideaInfo = await extractIdeaFromText(text);
+      const newIdea = await saveExtractedIdea(ideaInfo);
+      res.json(newIdea);
+    } catch (error) {
+      console.error("Failed to extract idea from text:", error);
+      res.status(500).json({ error: "テキストからのアイデア抽出に失敗しました" });
+    }
+  });
+
+  // PDFファイルからアイデアを抽出
+  app.post("/api/ideas/extract-from-pdf", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "PDFファイルが必要です" });
+      }
+
+      const ideaInfo = await extractIdeaFromPdf(req.file.buffer);
+      const newIdea = await saveExtractedIdea(ideaInfo);
+      res.json(newIdea);
+    } catch (error) {
+      console.error("Failed to extract idea from PDF:", error);
+      res.status(500).json({ error: "PDFからのアイデア抽出に失敗しました" });
     }
   });
 

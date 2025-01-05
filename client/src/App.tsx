@@ -7,6 +7,7 @@ import ProjectList from "@/components/ProjectList";
 import Dashboard from "@/pages/Dashboard";
 import Auth from "@/pages/Auth";
 import NewIdea from "@/pages/NewIdea";
+import ImportIdea from "@/pages/ImportIdea";
 import { Toaster } from "@/components/ui/toaster";
 import Sidebar from "@/components/Sidebar";
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="/projects" component={ProjectList} />
             <Route path="/dashboard/:id" component={Dashboard} />
             <Route path="/ideas/new" component={NewIdea} />
+            <Route path="/ideas/import" component={ImportIdea} />
             <Route path="/settings">
               <h1 className="text-2xl font-bold">設定</h1>
               <p className="mt-4 text-muted-foreground">設定ページは準備中です。</p>
