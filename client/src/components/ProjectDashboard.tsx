@@ -94,18 +94,12 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
                 <Bar
                   dataKey="progress"
                   radius={[4, 4, 0, 0]}
+                  fill="currentColor"
                 >
-                  {phaseStats.map((entry, index) => (
-                    <rect
-                      key={`cell-${index}`}
-                      fill={entry.color}
-                      fillOpacity={0.8}
-                      x={0}
-                      y={0}
-                      width="100%"
-                      height="100%"
-                    />
-                  ))}
+                  {phaseStats.map((entry, index) => ({
+                    fill: entry.color,
+                    fillOpacity: 0.8
+                  }))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

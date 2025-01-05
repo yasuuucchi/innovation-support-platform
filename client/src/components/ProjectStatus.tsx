@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { Idea } from "@db/schema";
-import { AlertCircle, TrendingUp, Users, Target } from "lucide-react";
+import { AlertCircle, TrendingUp, Users } from "lucide-react";
 
 interface Phase {
   id: string;
