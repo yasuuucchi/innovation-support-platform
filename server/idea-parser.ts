@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ideas } from "@db/schema";
 import { db } from "@db";
+import * as pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
 // Gemini AIの初期化
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || '');
@@ -29,28 +30,33 @@ export async function extractIdeaFromText(text: string): Promise<ExtractedIdeaIn
 テキスト:
 ${text}
 
-JSON形式で出力してください。存在しない情報は空文字列を設定してください。
+JSON形式で出力してください。存在しない情報は空文字列を設定してください。必ず上記の形式で返してください。
 `;
 
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const ideaInfo = JSON.parse(response.text());
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const ideaInfo = JSON.parse(response.text());
 
-  return {
-    name: ideaInfo.name || '',
-    targetCustomer: ideaInfo.targetCustomer || '',
-    value: ideaInfo.value || '',
-    priceRange: ideaInfo.priceRange || '',
-    competitors: ideaInfo.competitors || '',
-    currentPhase: ideaInfo.currentPhase || 'problem_validation',
-  };
+    return {
+      name: ideaInfo.name || '',
+      targetCustomer: ideaInfo.targetCustomer || '',
+      value: ideaInfo.value || '',
+      priceRange: ideaInfo.priceRange || '',
+      competitors: ideaInfo.competitors || '',
+      currentPhase: ideaInfo.currentPhase || 'problem_validation',
+    };
+  } catch (error) {
+    console.error('Failed to extract idea from text:', error);
+    throw new Error('テキストからのアイデア抽出に失敗しました');
+  }
 }
 
 export async function extractIdeaFromPdf(buffer: Buffer): Promise<ExtractedIdeaInfo> {
   try {
-    // PDFのテキストを直接文字列として扱う
-    const text = buffer.toString('utf-8');
-    return extractIdeaFromText(text);
+    // PDFをテキストに変換
+    const data = await pdfParse(buffer);
+    return extractIdeaFromText(data.text);
   } catch (error) {
     console.error('Failed to parse PDF:', error);
     throw new Error('PDFの解析に失敗しました');
@@ -59,12 +65,19 @@ export async function extractIdeaFromPdf(buffer: Buffer): Promise<ExtractedIdeaI
 
 export async function saveExtractedIdea(ideaInfo: ExtractedIdeaInfo) {
   try {
-    const [newIdea] = await db.insert(ideas).values({
-      ...ideaInfo,
-      phaseProgress: {},
-      updatedAt: new Date(),
-      createdAt: new Date(),
-    }).returning();
+    const [newIdea] = await db.insert(ideas)
+      .values({
+        name: ideaInfo.name,
+        targetCustomer: ideaInfo.targetCustomer,
+        value: ideaInfo.value,
+        priceRange: ideaInfo.priceRange,
+        competitors: ideaInfo.competitors,
+        currentPhase: ideaInfo.currentPhase || 'problem_validation',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        phaseProgress: {}
+      })
+      .returning();
 
     return newIdea;
   } catch (error) {
