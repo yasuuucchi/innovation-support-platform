@@ -6,26 +6,69 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Analysis } from "@/types";
+import { toast } from "@/hooks/use-toast";
 
 interface IdeaScoreCardProps {
   analysis: Analysis;
+  ideaId: number;
 }
 
-export default function IdeaScoreCard({ analysis }: IdeaScoreCardProps) {
+export default function IdeaScoreCard({ analysis, ideaId }: IdeaScoreCardProps) {
+  const queryClient = useQueryClient();
+
   // 安全にデータにアクセスし、デフォルト値を設定
   const marketPotential = analysis?.marketSize?.potential ?? 0;
   const snsTrends = analysis?.snsTrends ?? { positive: 0, neutral: 0, negative: 0 };
   const technicalMaturity = analysis?.technicalMaturity ?? 0;
   const ideaScore = analysis?.ideaScore ?? 0;
 
+  const updateAnalysis = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/ideas/${ideaId}/analyze`, {
+        method: "POST",
+      });
+      if (!response.ok) throw new Error("市場分析の更新に失敗しました");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/ideas/${ideaId}`] });
+      toast({
+        title: "更新完了",
+        description: "市場分析が更新されました",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "エラー",
+        description: "市場分析の更新に失敗しました",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>アイデアスコア</CardTitle>
-        <CardDescription>
-          市場と技術要因に基づく総合評価
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>アイデアスコア</CardTitle>
+            <CardDescription>
+              市場と技術要因に基づく総合評価
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => updateAnalysis.mutate()}
+            disabled={updateAnalysis.isPending}
+          >
+            <RefreshCw className={`h-4 w-4 ${updateAnalysis.isPending ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">

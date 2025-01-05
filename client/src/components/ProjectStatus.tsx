@@ -1,7 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Idea } from "@db/schema";
 import { AlertCircle, TrendingUp, Users } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 interface Phase {
   id: string;
@@ -24,11 +27,39 @@ interface ProjectStatusProps {
 }
 
 export default function ProjectStatus({ idea }: ProjectStatusProps) {
+  const queryClient = useQueryClient();
   const currentPhaseIndex = phases.findIndex(p => p.id === idea.currentPhase);
   const progress = idea.phaseProgress as Record<string, number>;
 
   // 全体の進捗率を計算
   const totalProgress = Object.values(progress).reduce((sum, value) => sum + value, 0) / phases.length;
+
+  // フェーズ更新のミューテーション
+  const updatePhase = useMutation({
+    mutationFn: async (newPhase: string) => {
+      const response = await fetch(`/api/ideas/${idea.id}/phase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phase: newPhase }),
+      });
+      if (!response.ok) throw new Error("フェーズの更新に失敗しました");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ideas"] });
+      toast({
+        title: "更新完了",
+        description: "プロジェクトフェーズが更新されました",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "エラー",
+        description: "フェーズの更新に失敗しました",
+        variant: "destructive",
+      });
+    },
+  });
 
   // ダミーのKPIデータ（実際のアプリケーションでは実データを使用）
   const kpiData = {
@@ -57,7 +88,22 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
           <div className="p-4 rounded-lg border transition-colors border-primary bg-primary/5">
             <div className="flex items-center gap-2 mb-2">
               <div className={`w-3 h-3 rounded-full ${phases[currentPhaseIndex].color}`} />
-              <span className="font-medium">{phases[currentPhaseIndex].name}</span>
+              <Select
+                value={idea.currentPhase}
+                onValueChange={(value) => updatePhase.mutate(value)}
+                disabled={updatePhase.isPending}
+              >
+                <SelectTrigger className="w-[300px]">
+                  <SelectValue placeholder="フェーズを選択" />
+                </SelectTrigger>
+                <SelectContent>
+                  {phases.map((phase) => (
+                    <SelectItem key={phase.id} value={phase.id}>
+                      {phase.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Progress 
               value={progress[idea.currentPhase] || 0} 
