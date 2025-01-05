@@ -93,6 +93,7 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
                     <Cell
                       key={`cell-${index}`}
                       fill={entry.color}
+                      background={{ fill: entry.color, fillOpacity: 0.1 }}
                     />
                   ))}
                 </Bar>
