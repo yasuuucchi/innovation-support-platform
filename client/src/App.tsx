@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useEffect } from "react";
-import Home from "@/pages/Home";
+import ProjectList from "@/components/ProjectList";
 import Dashboard from "@/pages/Dashboard";
 import Auth from "@/pages/Auth";
 import { Toaster } from "@/components/ui/toaster";
@@ -20,7 +20,7 @@ function App() {
       <Switch>
         <Route path="/auth" component={Auth} />
         <Route path="/">
-          {isAuthenticated ? <Home /> : <Auth />}
+          {isAuthenticated ? <ProjectList /> : <Auth />}
         </Route>
         <Route path="/dashboard/:id">
           {isAuthenticated ? <Dashboard /> : <Auth />}
