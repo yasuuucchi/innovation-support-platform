@@ -8,6 +8,7 @@ import BehaviorTracker from "@/components/BehaviorTracker";
 import InterviewForm from "@/components/InterviewForm";
 import InterviewResults from "@/components/InterviewResults";
 import ProjectRisks from "@/components/ProjectRisks";
+import ProjectRecommendations from "@/components/ProjectRecommendations";
 import type { Idea, Analysis, BehaviorLog, Interview } from "@db/schema";
 
 export default function Dashboard() {
@@ -80,6 +81,8 @@ export default function Dashboard() {
         {analysis && <IdeaScoreCard analysis={analysis} ideaId={ideaId} />}
 
         <ProjectRisks ideaId={ideaId} />
+
+        <ProjectRecommendations ideaId={ideaId} />
       </div>
 
       <Tabs defaultValue="market" className="space-y-4">

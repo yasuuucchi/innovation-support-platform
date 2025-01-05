@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "@db";
-import { ideas, analysis, behaviorLogs, interviews, projectRisks, projectMetrics, users } from "@db/schema";
+import { ideas, analysis, behaviorLogs, interviews, projectRisks, projectMetrics, users, recommendations } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { analyzeInterview } from "./gemini";
 import { analyzeMarketData } from "./market-analysis";
@@ -10,6 +10,7 @@ import session from "express-session";
 import MemoryStore from "memorystore";
 import passport from "./auth";
 import bcrypt from "bcryptjs";
+import { generateRecommendations, generateProjectReport } from "./recommendation-engine";
 
 // ダミーの行動ログデータを生成する関数
 function generateDummyBehaviorLogs(ideaId: number) {
@@ -462,6 +463,45 @@ export function registerRoutes(app: Express): Server {
   });
 
 
+  // レコメンデーション生成エンドポイント
+  app.post("/api/ideas/:id/recommendations", async (req, res) => {
+    try {
+      const ideaId = parseInt(req.params.id);
+      const recommendations = await generateRecommendations(ideaId);
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Failed to generate recommendations:", error);
+      res.status(500).json({ error: "レコメンデーションの生成に失敗しました" });
+    }
+  });
+
+  // レポート生成エンドポイント
+  app.post("/api/ideas/:id/report", async (req, res) => {
+    try {
+      const ideaId = parseInt(req.params.id);
+      const report = await generateProjectReport(ideaId);
+      res.json(report);
+    } catch (error) {
+      console.error("Failed to generate report:", error);
+      res.status(500).json({ error: "レポートの生成に失敗しました" });
+    }
+  });
+
+  // 既存のレコメンデーション取得エンドポイントを更新
+  app.get("/api/ideas/:id/recommendations", async (req, res) => {
+    try {
+      const ideaId = parseInt(req.params.id);
+      const ideaRecommendations = await db
+        .select()
+        .from(recommendations)
+        .where(eq(recommendations.ideaId, ideaId))
+        .orderBy(recommendations.createdAt);
+      res.json(ideaRecommendations);
+    } catch (error) {
+      console.error("Failed to fetch recommendations:", error);
+      res.status(500).json({ error: "レコメンデーションの取得に失敗しました" });
+    }
+  });
 
   return httpServer;
 }
