@@ -87,15 +87,14 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
                 />
                 <Bar
                   dataKey="progress"
-                  fill="#8884d8"
                   background={{ fill: "#eee" }}
                   radius={[4, 4, 0, 0]}
                 >
                   {phaseStats.map((entry, index) => (
                     <Bar
                       key={`bar-${index}`}
-                      dataKey="progress"
                       fill={entry.color}
+                      dataKey="progress"
                     />
                   ))}
                 </Bar>
