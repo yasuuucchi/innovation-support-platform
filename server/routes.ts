@@ -1,9 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "@db";
-import { ideas, analysis, behaviorLogs, interviews, projectRisks, projectMetrics } from "@db/schema";
+import { ideas, analysis, behaviorLogs, interviews, projectRisks, projectMetrics, users } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { analyzeInterview } from "./gemini";
+import { analyzeMarketData } from "./market-analysis";
 import express from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
@@ -327,6 +328,32 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ error: "Failed to fetch project metrics" });
     }
   });
+
+  // 市場分析エンドポイントを追加
+  app.post("/api/market-analysis", async (req, res) => {
+    try {
+      const { ideaId, ...ideaData } = req.body;
+
+      // Geminiを使用して市場分析を実行
+      const analysisResult = await analyzeMarketData(ideaData);
+
+      // 分析結果をデータベースに保存
+      const newAnalysis = await db.insert(analysis).values({
+        ideaId: parseInt(ideaId),
+        ideaScore: analysisResult.ideaScore,
+        scoreDetails: analysisResult.scoreDetails,
+        marketInsights: analysisResult.marketInsights,
+        recommendations: analysisResult.recommendations,
+        createdAt: new Date(),
+      }).returning();
+
+      res.json(newAnalysis[0]);
+    } catch (error) {
+      console.error("Failed to perform market analysis:", error);
+      res.status(500).json({ error: "市場分析の実行に失敗しました" });
+    }
+  });
+
 
   return httpServer;
 }

@@ -57,10 +57,21 @@ export const analysis = pgTable("analysis", {
   id: serial("id").primaryKey(),
   ideaId: integer("idea_id").references(() => ideas.id).notNull(),
   ideaScore: integer("idea_score").notNull(),
-  snsTrends: jsonb("sns_trends").notNull(),
-  marketSize: jsonb("market_size").notNull(),
-  technicalMaturity: integer("technical_maturity").notNull(),
-  personaSize: integer("persona_size").notNull(),
+  scoreDetails: jsonb("score_details").notNull().default({
+    marketPotential: 0,
+    competitiveAdvantage: 0,
+    feasibility: 0,
+    profitability: 0,
+    innovation: 0
+  }),
+  marketInsights: jsonb("market_insights").notNull().default({
+    marketSize: "",
+    growthRate: "",
+    competitorAnalysis: [],
+    risks: [],
+    opportunities: []
+  }),
+  recommendations: jsonb("recommendations").notNull().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -107,6 +118,7 @@ export type NewUser = typeof users.$inferInsert;
 export type Idea = typeof ideas.$inferSelect;
 export type NewIdea = typeof ideas.$inferInsert;
 export type Analysis = typeof analysis.$inferSelect;
+export type NewAnalysis = typeof analysis.$inferInsert;
 export type BehaviorLog = typeof behaviorLogs.$inferSelect;
 export type Interview = typeof interviews.$inferSelect;
 export type Recommendation = typeof recommendations.$inferSelect;
