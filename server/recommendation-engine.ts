@@ -32,7 +32,7 @@ export async function generateRecommendations(ideaId: number) {
       .where(eq(projectMetrics.ideaId, ideaId));
 
     // リスクの取得
-    const risks = await db
+    const projectRiskList = await db
       .select()
       .from(projectRisks)
       .where(eq(projectRisks.ideaId, ideaId));
@@ -40,7 +40,7 @@ export async function generateRecommendations(ideaId: number) {
     // AIに分析させるためのプロンプトを生成
     const prompt = `
 以下のプロジェクトデータを分析し、次のアクションを提案してください。
-レスポンスはJSON形式で出力してください。
+レスポンスはJSON形式で出力してください。マークダウンの記法は使用しないでください。
 
 プロジェクト情報:
 - 名前: ${idea.name}
@@ -55,7 +55,7 @@ ${interviewResults.map(ir => `- ${ir.content}`).join('\n')}
 ${metrics.map(m => `- ${m.metricName}: ${JSON.stringify(m.metricValue)}`).join('\n')}
 
 リスク:
-${risks.map(r => `- ${r.riskType}: ${r.description} (重要度: ${r.severity})`).join('\n')}
+${projectRiskList.map(r => `- ${r.riskType}: ${r.description} (重要度: ${r.severity})`).join('\n')}
 
 必要な出力形式:
 {
@@ -73,14 +73,29 @@ ${risks.map(r => `- ${r.riskType}: ${r.description} (重要度: ${r.severity})`)
   "next_actions": ["具体的なアクション1", "具体的なアクション2"],
   "risks": ["新たに特定されたリスク1", "新たに特定されたリスク2"]
 }
+
+注意：
+1. レスポンスは上記のJSON形式のみを出力してください
+2. マークダウンの記法（\`\`\`json等）は使用しないでください
+3. 各配列は必ず1つ以上の要素を含めてください
+4. 全ての必須フィールドを含めてください
 `;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const analysisResult = JSON.parse(response.text());
+    const text = response.text();
+
+    // レスポンスからJSONを抽出（マークダウン記法が含まれている可能性を考慮）
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("JSONレスポンスが見つかりません");
+    }
+
+    const analysisResult = JSON.parse(jsonMatch[0]);
 
     // レコメンデーションをデータベースに保存
-    for (const rec of analysisResult.recommendations) {
+    const recommendationList = analysisResult.recommendations || [];
+    for (const rec of recommendationList) {
       await db.insert(recommendations).values({
         ideaId,
         title: rec.title,
@@ -95,12 +110,13 @@ ${risks.map(r => `- ${r.riskType}: ${r.description} (重要度: ${r.severity})`)
     }
 
     // リスクの更新
-    for (const risk of analysisResult.risks) {
+    const newRisks = analysisResult.risks || [];
+    for (const riskDescription of newRisks) {
       await db.insert(projectRisks).values({
         ideaId,
+        description: riskDescription,
         riskType: "ai_identified",
         severity: "medium",
-        description: risk,
         mitigationStatus: "pending",
       });
     }
@@ -135,7 +151,7 @@ export async function generateProjectReport(ideaId: number) {
       .from(projectMetrics)
       .where(eq(projectMetrics.ideaId, ideaId));
 
-    const risks = await db
+    const projectRisks = await db
       .select()
       .from(projectRisks)
       .where(eq(projectRisks.ideaId, ideaId));
@@ -148,7 +164,7 @@ export async function generateProjectReport(ideaId: number) {
     // レポート生成のプロンプト
     const prompt = `
 以下のプロジェクトデータを元に、詳細なプロジェクトレポートを作成してください。
-レスポンスはJSON形式で出力してください。
+レスポンスはJSON形式で出力してください。マークダウンの記法は使用しないでください。
 
 プロジェクト情報:
 - 名前: ${idea.name}
@@ -163,7 +179,7 @@ ${interviewResults.map(ir => `- ${ir.content}`).join('\n')}
 ${metrics.map(m => `- ${m.metricName}: ${JSON.stringify(m.metricValue)}`).join('\n')}
 
 リスク:
-${risks.map(r => `- ${r.riskType}: ${r.description} (重要度: ${r.severity})`).join('\n')}
+${projectRisks.map(r => `- ${r.riskType}: ${r.description} (重要度: ${r.severity})`).join('\n')}
 
 推奨アクション:
 ${recs.map(r => `- ${r.title}: ${r.description} (優先度: ${r.priority})`).join('\n')}
@@ -202,7 +218,15 @@ ${recs.map(r => `- ${r.title}: ${r.description} (優先度: ${r.priority})`).joi
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return JSON.parse(response.text());
+    const text = response.text();
+
+    // レスポンスからJSONを抽出（マークダウン記法が含まれている可能性を考慮）
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("JSONレスポンスが見つかりません");
+    }
+
+    return JSON.parse(jsonMatch[0]);
   } catch (error) {
     console.error("Failed to generate project report:", error);
     throw error;

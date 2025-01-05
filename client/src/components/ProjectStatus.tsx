@@ -30,6 +30,7 @@ interface ProjectStatusProps {
 export default function ProjectStatus({ idea }: ProjectStatusProps) {
   const queryClient = useQueryClient();
   const currentPhaseIndex = phases.findIndex(p => p.id === idea.currentPhase);
+  const currentPhase = phases[currentPhaseIndex] || phases[0]; // フォールバック用のデフォルトフェーズ
   const progress = idea.phaseProgress as Record<string, number>;
 
   // 全体の進捗率を計算
@@ -75,7 +76,7 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/ideas/${idea.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/analysis/${idea.id}`] });
       toast({
         title: "更新完了",
         description: "市場分析が更新されました",
@@ -105,7 +106,10 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => updateAnalysis.mutate()}
+            onClick={(e) => {
+              e.preventDefault(); // Linkコンポーネントのナビゲーションを防止
+              updateAnalysis.mutate();
+            }}
             disabled={updateAnalysis.isPending}
           >
             <RefreshCw className={`h-4 w-4 ${updateAnalysis.isPending ? "animate-spin" : ""}`} />
@@ -126,10 +130,12 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
           {/* 現在のフェーズ */}
           <div className="p-4 rounded-lg border transition-colors border-primary bg-primary/5">
             <div className="flex items-center gap-2 mb-2">
-              <div className={`w-3 h-3 rounded-full ${phases[currentPhaseIndex].color}`} />
+              <div className={`w-3 h-3 rounded-full ${currentPhase.color}`} />
               <Select
                 value={idea.currentPhase}
-                onValueChange={(value) => updatePhase.mutate(value)}
+                onValueChange={(value) => {
+                  updatePhase.mutate(value);
+                }}
                 disabled={updatePhase.isPending}
               >
                 <SelectTrigger className="w-[300px]">
@@ -146,7 +152,7 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
             </div>
             <Progress 
               value={progress[idea.currentPhase] || 0} 
-              className={`h-2 ${phases[currentPhaseIndex].color.replace('bg-', 'bg-opacity-20')}`}
+              className={`h-2 ${currentPhase.color.replace('bg-', 'bg-opacity-20')}`}
             />
           </div>
 
