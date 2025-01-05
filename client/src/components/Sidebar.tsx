@@ -6,7 +6,7 @@ import {
   PlusCircle, 
   Settings,
   Menu,
-  X
+  Upload
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
@@ -27,6 +27,11 @@ const navigation = [
     name: "新規アイデア",
     href: "/ideas/new",
     icon: PlusCircle
+  },
+  {
+    name: "アイデアをインポート",
+    href: "/ideas/import",
+    icon: Upload
   },
   {
     name: "設定",
