@@ -9,13 +9,13 @@ interface Phase {
 }
 
 const phases: Phase[] = [
-  { id: "idea_exploration", name: "アイデア探索", color: "bg-blue-500" },
-  { id: "customer_discovery", name: "顧客探索", color: "bg-green-500" },
-  { id: "customer_problem_fit", name: "課題適合", color: "bg-yellow-500" },
-  { id: "problem_solution_fit", name: "解決策適合", color: "bg-orange-500" },
-  { id: "solution_product_fit", name: "製品実現性", color: "bg-red-500" },
-  { id: "product_market_fit", name: "市場適合性", color: "bg-purple-500" },
-  { id: "scale_up", name: "スケールアップ", color: "bg-pink-500" }
+  { id: "idea_exploration", name: "Idea Exploration（アイデア探索）", color: "bg-blue-500" },
+  { id: "customer_discovery", name: "Customer Discovery（顧客探索）", color: "bg-green-500" },
+  { id: "customer_problem_fit", name: "Customer/Problem Fit（課題適合）", color: "bg-yellow-500" },
+  { id: "problem_solution_fit", name: "Problem/Solution Fit（解決策適合）", color: "bg-orange-500" },
+  { id: "solution_product_fit", name: "Solution/Product Fit（製品実現性）", color: "bg-red-500" },
+  { id: "product_market_fit", name: "Product/Market Fit（市場適合性）", color: "bg-purple-500" },
+  { id: "scale_up", name: "Scale-Up（スケールアップ）", color: "bg-pink-500" }
 ];
 
 interface ProjectStatusProps {
