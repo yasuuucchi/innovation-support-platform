@@ -51,7 +51,7 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
         <CardHeader>
           <CardTitle>全体の進捗状況</CardTitle>
           <CardDescription>
-            全プロジェクトの平均進捗率: {totalProgress}%
+            全{ideas.length}プロジェクトの平均進捗率: {totalProgress}%
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -89,10 +89,10 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.floor(Math.random() * 1000)}件
+              497件
             </div>
             <p className="text-sm text-muted-foreground">
-              前月比 +{Math.floor(Math.random() * 100)}%
+              前月比 +63%
             </p>
           </CardContent>
         </Card>
@@ -106,10 +106,10 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.floor(Math.random() * 100)}%
+              84%
             </div>
             <p className="text-sm text-muted-foreground">
-              前月比 +{Math.floor(Math.random() * 20)}%
+              前月比 +6%
             </p>
           </CardContent>
         </Card>
@@ -123,10 +123,10 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.floor(Math.random() * 100)}%
+              71%
             </div>
             <p className="text-sm text-muted-foreground">
-              前月比 +{Math.floor(Math.random() * 15)}%
+              前月比 +6%
             </p>
           </CardContent>
         </Card>
@@ -136,7 +136,7 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
       <Card className="bg-yellow-50 border-yellow-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-yellow-800">
-            <AlertCircle className="h-5 w-5" />
+            <AlertCircle className="h-5 w-4" />
             検出されたリスク
           </CardTitle>
         </CardHeader>
