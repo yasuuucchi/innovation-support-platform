@@ -23,6 +23,15 @@ export default function IdeaImport() {
       return;
     }
 
+    if (text.length > 50000) {
+      toast({
+        title: "エラー",
+        description: "テキストが長すぎます（最大50,000文字）",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const response = await fetch("/api/ideas/extract-from-text", {
@@ -44,7 +53,7 @@ export default function IdeaImport() {
         title: "成功",
         description: "アイデアを登録しました",
       });
-      setLocation(`/dashboard/${newIdea.id}`);
+      setLocation(`/projects/${newIdea.id}`);
     } catch (error: unknown) {
       toast({
         title: "エラー",
@@ -64,6 +73,16 @@ export default function IdeaImport() {
       toast({
         title: "エラー",
         description: "PDFファイルを選択してください",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // ファイルサイズチェック（5MB制限）
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "エラー",
+        description: "ファイルサイズが大きすぎます（最大5MB）",
         variant: "destructive",
       });
       return;
@@ -90,7 +109,7 @@ export default function IdeaImport() {
         title: "成功",
         description: "アイデアを登録しました",
       });
-      setLocation(`/dashboard/${newIdea.id}`);
+      setLocation(`/projects/${newIdea.id}`);
     } catch (error: unknown) {
       toast({
         title: "エラー",
@@ -109,6 +128,8 @@ export default function IdeaImport() {
           <CardTitle>テキストからアイデアを登録</CardTitle>
           <CardDescription>
             アイデアの説明を入力してください。AIが自動で必要な情報を抽出します。
+            <br />
+            最大50,000文字まで入力できます。
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -118,18 +139,28 @@ export default function IdeaImport() {
             onChange={(e) => setText(e.target.value)}
             className="min-h-[200px] mb-4"
           />
-          <Button
-            onClick={handleTextSubmit}
-            disabled={isProcessing}
-            className="w-full"
-          >
-            {isProcessing ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <FileText className="h-4 w-4 mr-2" />
-            )}
-            テキストから登録
-          </Button>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">
+              {text.length} / 50,000文字
+            </span>
+            <Button
+              onClick={handleTextSubmit}
+              disabled={isProcessing || text.length > 50000}
+              className="w-[200px]"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  処理中...
+                </>
+              ) : (
+                <>
+                  <FileText className="h-4 w-4 mr-2" />
+                  テキストから登録
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -138,6 +169,8 @@ export default function IdeaImport() {
           <CardTitle>PDFからアイデアを登録</CardTitle>
           <CardDescription>
             PDFファイルをアップロードしてアイデアを登録できます。
+            <br />
+            最大5MBまでのファイルをアップロードできます。
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -149,11 +182,16 @@ export default function IdeaImport() {
           >
             <label>
               {isProcessing ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  処理中...
+                </>
               ) : (
-                <Upload className="h-4 w-4 mr-2" />
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  PDFをアップロード
+                </>
               )}
-              PDFをアップロード
               <input
                 type="file"
                 accept=".pdf"
