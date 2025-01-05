@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "@db";
-import { ideas, analysis, behaviorLogs, interviews, users } from "@db/schema";
+import { ideas, analysis, behaviorLogs, interviews, projectRisks, projectMetrics } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { analyzeInterview } from "./gemini";
 import express from "express";
@@ -78,7 +78,7 @@ function generateDummyBehaviorLogs(ideaId: number) {
     }
   }
 
-  return logs.sort((a, b) => 
+  return logs.sort((a, b) =>
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 }
@@ -297,6 +297,34 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Failed to fetch interviews:", error);
       res.status(500).json({ error: "Failed to fetch interviews" });
+    }
+  });
+
+  // プロジェクトのリスク情報を取得
+  app.get("/api/project-risks/:ideaId", async (req, res) => {
+    try {
+      const risks = await db
+        .select()
+        .from(projectRisks)
+        .where(eq(projectRisks.ideaId, parseInt(req.params.ideaId)));
+      res.json(risks);
+    } catch (error) {
+      console.error("Failed to fetch project risks:", error);
+      res.status(500).json({ error: "Failed to fetch project risks" });
+    }
+  });
+
+  // プロジェクトの指標情報を取得
+  app.get("/api/project-metrics/:ideaId", async (req, res) => {
+    try {
+      const metrics = await db
+        .select()
+        .from(projectMetrics)
+        .where(eq(projectMetrics.ideaId, parseInt(req.params.ideaId)));
+      res.json(metrics);
+    } catch (error) {
+      console.error("Failed to fetch project metrics:", error);
+      res.status(500).json({ error: "Failed to fetch project metrics" });
     }
   });
 
