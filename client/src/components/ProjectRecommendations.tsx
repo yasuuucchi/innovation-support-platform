@@ -14,6 +14,7 @@ import {
   FileDown,
   RefreshCw,
   Star,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { Recommendation } from "@db/schema";
