@@ -1,6 +1,6 @@
 import { Switch, Route } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useEffect } from "react";
 import ProjectList from "@/components/ProjectList";

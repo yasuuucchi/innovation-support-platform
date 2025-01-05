@@ -23,11 +23,17 @@ export const useAuth = create<AuthState>((set) => ({
   },
   checkSession: async () => {
     try {
-      const response = await fetch("/api/auth/session");
+      const response = await fetch("/api/auth/session", {
+        credentials: "include"
+      });
+      if (!response.ok) {
+        set({ user: null, isAuthenticated: false });
+        return;
+      }
       const data = await response.json();
       set({
         user: data.user,
-        isAuthenticated: data.isAuthenticated,
+        isAuthenticated: Boolean(data.user),
       });
     } catch (error) {
       console.error("セッションの確認に失敗しました:", error);
