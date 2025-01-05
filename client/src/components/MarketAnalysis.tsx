@@ -16,10 +16,14 @@ import {
 } from "recharts";
 import type { Analysis } from "@db/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, TrendingUp, Users } from "lucide-react";
+import { AlertCircle, TrendingUp, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 interface MarketAnalysisProps {
   analysis: Analysis;
+  ideaId: number;
 }
 
 interface ScoreDetail {
@@ -27,7 +31,35 @@ interface ScoreDetail {
   value: number;
 }
 
-export default function MarketAnalysis({ analysis }: MarketAnalysisProps) {
+export default function MarketAnalysis({ analysis, ideaId }: MarketAnalysisProps) {
+  const queryClient = useQueryClient();
+
+  const updateAnalysis = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/ideas/${ideaId}/analyze`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!response.ok) throw new Error("市場分析の更新に失敗しました");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/ideas/${ideaId}`] });
+      toast({
+        title: "更新完了",
+        description: "市場分析が更新されました",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "エラー",
+        description: "市場分析の更新に失敗しました",
+        variant: "destructive",
+      });
+    },
+  });
+
   // レーダーチャートのデータを整形
   const radarData: ScoreDetail[] = [
     {
@@ -57,10 +89,22 @@ export default function MarketAnalysis({ analysis }: MarketAnalysisProps) {
       {/* スコアカード */}
       <Card>
         <CardHeader>
-          <CardTitle>総合評価スコア</CardTitle>
-          <CardDescription>
-            {analysis.ideaScore}/100点
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>総合評価スコア</CardTitle>
+              <CardDescription>
+                {analysis.ideaScore}/100点
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => updateAnalysis.mutate()}
+              disabled={updateAnalysis.isPending}
+            >
+              <RefreshCw className={`h-4 w-4 ${updateAnalysis.isPending ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="h-[400px]">
