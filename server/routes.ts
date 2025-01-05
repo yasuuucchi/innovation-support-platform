@@ -511,6 +511,14 @@ export function registerRoutes(app: Express): Server {
     limits: {
       fileSize: 5 * 1024 * 1024, // 5MB制限
     },
+    fileFilter: (req, file, cb) => {
+      // PDFファイルのみを許可
+      if (file.mimetype === 'application/pdf') {
+        cb(null, true);
+      } else {
+        cb(new Error('PDFファイルのみアップロード可能です'));
+      }
+    }
   });
 
   // テキストファイルからアイデアを抽出
@@ -537,12 +545,20 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "PDFファイルが必要です" });
       }
 
+      console.log('PDF upload received:', {
+        originalname: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+
       const ideaInfo = await extractIdeaFromPdf(req.file.buffer);
+      console.log('Extracted idea info:', ideaInfo);
+
       const newIdea = await saveExtractedIdea(ideaInfo);
       res.json(newIdea);
     } catch (error) {
       console.error("Failed to extract idea from PDF:", error);
-      res.status(500).json({ error: "PDFからのアイデア抽出に失敗しました" });
+      res.status(500).json({ error: error instanceof Error ? error.message : "PDFからのアイデア抽出に失敗しました" });
     }
   });
 

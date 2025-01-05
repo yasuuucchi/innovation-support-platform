@@ -113,17 +113,25 @@ ${text}
 // PDFからテキストを抽出
 export async function extractIdeaFromPdf(pdfBuffer: Buffer): Promise<IdeaInfo> {
   try {
+    console.log('Starting PDF parsing...');
     const data = await PDFParser(pdfBuffer);
+    console.log('PDF parsed successfully, text length:', data.text.length);
+
     const text = preprocessText(data.text);
+    console.log('Preprocessed text length:', text.length);
 
     if (!text) {
       throw new Error("PDFからテキストを抽出できませんでした");
     }
 
+    if (text.length > 50000) {
+      throw new Error("テキストが長すぎます（最大50,000文字）");
+    }
+
     return await extractIdeaInfoFromText(text);
   } catch (error) {
     console.error("Failed to extract text from PDF:", error);
-    throw new Error("PDFの処理に失敗しました");
+    throw error instanceof Error ? error : new Error("PDFの処理に失敗しました");
   }
 }
 
