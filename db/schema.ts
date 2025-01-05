@@ -30,6 +30,28 @@ export const ideas = pgTable("ideas", {
   userId: integer("user_id").references(() => users.id).notNull(),
 });
 
+export const analysis = pgTable("analysis", {
+  id: serial("id").primaryKey(),
+  ideaId: integer("idea_id").references(() => ideas.id).unique().notNull(),
+  ideaScore: integer("idea_score").notNull(),
+  scoreDetails: jsonb("score_details").notNull().default({
+    marketPotential: 0,
+    competitiveAdvantage: 0,
+    feasibility: 0,
+    profitability: 0,
+    innovation: 0
+  }),
+  marketInsights: jsonb("market_insights").notNull().default({
+    marketSize: "",
+    growthRate: "",
+    competitorAnalysis: [],
+    risks: [],
+    opportunities: []
+  }),
+  recommendations: jsonb("recommendations").notNull().default([]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const projectMetrics = pgTable("project_metrics", {
   id: serial("id").primaryKey(),
   ideaId: integer("idea_id").references(() => ideas.id).notNull(),
@@ -51,28 +73,6 @@ export const projectRisks = pgTable("project_risks", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   resolvedAt: timestamp("resolved_at"),
-});
-
-export const analysis = pgTable("analysis", {
-  id: serial("id").primaryKey(),
-  ideaId: integer("idea_id").references(() => ideas.id).notNull(),
-  ideaScore: integer("idea_score").notNull(),
-  scoreDetails: jsonb("score_details").notNull().default({
-    marketPotential: 0,
-    competitiveAdvantage: 0,
-    feasibility: 0,
-    profitability: 0,
-    innovation: 0
-  }),
-  marketInsights: jsonb("market_insights").notNull().default({
-    marketSize: "",
-    growthRate: "",
-    competitorAnalysis: [],
-    risks: [],
-    opportunities: []
-  }),
-  recommendations: jsonb("recommendations").notNull().default([]),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const behaviorLogs = pgTable("behavior_logs", {
