@@ -30,6 +30,8 @@ export default function IdeaScoreCard({ analysis, ideaId }: IdeaScoreCardProps) 
     mutationFn: async () => {
       const response = await fetch(`/api/ideas/${ideaId}/analyze`, {
         method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" }
       });
       if (!response.ok) throw new Error("市場分析の更新に失敗しました");
       return response.json();

@@ -354,6 +354,78 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Ideas
+  app.post("/api/ideas/:id/analyze", async (req, res) => {
+    try {
+      const ideaId = parseInt(req.params.id);
+      const idea = await db.select().from(ideas).where(eq(ideas.id, ideaId));
+
+      if (idea.length === 0) {
+        return res.status(404).json({ error: "アイデアが見つかりません" });
+      }
+
+      // ダミーの分析結果を返す（実際のアプリケーションではGemini APIを使用）
+      const analysisResult = {
+        ideaScore: Math.floor(Math.random() * 30) + 70, // 70-100の範囲
+        marketSize: {
+          potential: Math.floor(Math.random() * 9000000) + 1000000,
+        },
+        technicalMaturity: Math.floor(Math.random() * 40) + 60,
+        snsTrends: {
+          positive: Math.floor(Math.random() * 40) + 30,
+          neutral: Math.floor(Math.random() * 20) + 20,
+          negative: Math.floor(Math.random() * 20)
+        }
+      };
+
+      // 分析結果をデータベースに保存
+      await db
+        .update(ideas)
+        .set({
+          analysis: analysisResult,
+          updatedAt: new Date(),
+        })
+        .where(eq(ideas.id, ideaId));
+
+      res.json(analysisResult);
+    } catch (error) {
+      console.error("Failed to analyze idea:", error);
+      res.status(500).json({ error: "市場分析の更新に失敗しました" });
+    }
+  });
+
+  // フェーズの更新
+  app.post("/api/ideas/:id/phase", async (req, res) => {
+    try {
+      const ideaId = parseInt(req.params.id);
+      const { phase } = req.body;
+
+      if (!phase) {
+        return res.status(400).json({ error: "フェーズが指定されていません" });
+      }
+
+      const idea = await db.select().from(ideas).where(eq(ideas.id, ideaId));
+
+      if (idea.length === 0) {
+        return res.status(404).json({ error: "アイデアが見つかりません" });
+      }
+
+      // フェーズを更新
+      await db
+        .update(ideas)
+        .set({
+          currentPhase: phase,
+          updatedAt: new Date(),
+        })
+        .where(eq(ideas.id, ideaId));
+
+      res.json({ message: "フェーズを更新しました" });
+    } catch (error) {
+      console.error("Failed to update phase:", error);
+      res.status(500).json({ error: "フェーズの更新に失敗しました" });
+    }
+  });
+
 
   return httpServer;
 }
