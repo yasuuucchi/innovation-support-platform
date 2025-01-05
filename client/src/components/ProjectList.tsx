@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Idea } from "@db/schema";
 import ProjectStatus from "./ProjectStatus";
+import ProjectDashboard from "./ProjectDashboard";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import {
@@ -13,6 +14,7 @@ import {
 import { Plus, Search } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const phases = [
   { id: "idea_exploration", name: "Idea Exploration（アイデア探索）" },
@@ -62,61 +64,76 @@ export default function ProjectList() {
         </Button>
       </div>
 
-      <div className="flex gap-4 mb-8">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="プロジェクト名で検索..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select
-          value={selectedPhase || undefined}
-          onValueChange={setSelectedPhase}
-        >
-          <SelectTrigger className="w-[300px]">
-            <SelectValue placeholder="フェーズで絞り込み" />
-          </SelectTrigger>
-          <SelectContent>
-            {phaseStats.map((phase) => (
-              <SelectItem key={phase.id} value={phase.id}>
-                {phase.name} ({phase.count})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <Tabs defaultValue="dashboard" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="dashboard">ダッシュボード</TabsTrigger>
+          <TabsTrigger value="list">プロジェクト一覧</TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredIdeas.map((idea) => (
-          <Link key={idea.id} href={`/dashboard/${idea.id}`}>
-            <ProjectStatus idea={idea} />
-          </Link>
-        ))}
+        <TabsContent value="dashboard">
+          <ProjectDashboard ideas={ideas} />
+        </TabsContent>
 
-        {filteredIdeas.length === 0 && (
-          <div className="col-span-full text-center py-12 bg-muted rounded-lg">
-            <h3 className="text-lg font-medium mb-2">
-              {ideas.length === 0 ? "プロジェクトがありません" : "該当するプロジェクトがありません"}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {ideas.length === 0
-                ? "新しいアイデアを追加して、イノベーションを始めましょう"
-                : "検索条件を変更してみてください"}
-            </p>
-            {ideas.length === 0 && (
-              <Button asChild>
-                <Link href="/ideas/new">
-                  <Plus className="w-4 h-4 mr-2" />
-                  新規アイデア
+        <TabsContent value="list">
+          <div className="space-y-6">
+            <div className="flex gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="プロジェクト名で検索..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select
+                value={selectedPhase || undefined}
+                onValueChange={setSelectedPhase}
+              >
+                <SelectTrigger className="w-[300px]">
+                  <SelectValue placeholder="フェーズで絞り込み" />
+                </SelectTrigger>
+                <SelectContent>
+                  {phaseStats.map((phase) => (
+                    <SelectItem key={phase.id} value={phase.id}>
+                      {phase.name} ({phase.count})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredIdeas.map((idea) => (
+                <Link key={idea.id} href={`/dashboard/${idea.id}`}>
+                  <ProjectStatus idea={idea} />
                 </Link>
-              </Button>
-            )}
+              ))}
+
+              {filteredIdeas.length === 0 && (
+                <div className="col-span-full text-center py-12 bg-muted rounded-lg">
+                  <h3 className="text-lg font-medium mb-2">
+                    {ideas.length === 0 ? "プロジェクトがありません" : "該当するプロジェクトがありません"}
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    {ideas.length === 0
+                      ? "新しいアイデアを追加して、イノベーションを始めましょう"
+                      : "検索条件を変更してみてください"}
+                  </p>
+                  {ideas.length === 0 && (
+                    <Button asChild>
+                      <Link href="/ideas/new">
+                        <Plus className="w-4 h-4 mr-2" />
+                        新規アイデア
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
