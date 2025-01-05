@@ -2,9 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Idea } from "@db/schema";
-import { AlertCircle, TrendingUp, Users } from "lucide-react";
+import { AlertCircle, TrendingUp, Users, RefreshCw } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 interface Phase {
   id: string;
@@ -40,6 +41,7 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
       const response = await fetch(`/api/ideas/${idea.id}/phase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ phase: newPhase }),
       });
       if (!response.ok) throw new Error("フェーズの更新に失敗しました");
@@ -61,6 +63,33 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
     },
   });
 
+  // 市場分析の更新ミューテーション
+  const updateAnalysis = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/ideas/${idea.id}/analyze`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!response.ok) throw new Error("市場分析の更新に失敗しました");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/ideas/${idea.id}`] });
+      toast({
+        title: "更新完了",
+        description: "市場分析が更新されました",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "エラー",
+        description: "市場分析の更新に失敗しました",
+        variant: "destructive",
+      });
+    },
+  });
+
   // ダミーのKPIデータ（実際のアプリケーションでは実データを使用）
   const kpiData = {
     interviews: Math.floor(Math.random() * 100),
@@ -71,7 +100,17 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
       <CardHeader>
-        <CardTitle className="text-xl line-clamp-2">{idea.name}</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl line-clamp-2">{idea.name}</CardTitle>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => updateAnalysis.mutate()}
+            disabled={updateAnalysis.isPending}
+          >
+            <RefreshCw className={`h-4 w-4 ${updateAnalysis.isPending ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

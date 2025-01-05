@@ -367,27 +367,62 @@ export function registerRoutes(app: Express): Server {
       // ダミーの分析結果を返す（実際のアプリケーションではGemini APIを使用）
       const analysisResult = {
         ideaScore: Math.floor(Math.random() * 30) + 70, // 70-100の範囲
-        marketSize: {
-          potential: Math.floor(Math.random() * 9000000) + 1000000,
+        scoreDetails: {
+          marketPotential: Math.floor(Math.random() * 40) + 60,
+          competitiveAdvantage: Math.floor(Math.random() * 40) + 60,
+          feasibility: Math.floor(Math.random() * 40) + 60,
+          profitability: Math.floor(Math.random() * 40) + 60,
+          innovation: Math.floor(Math.random() * 40) + 60
         },
-        technicalMaturity: Math.floor(Math.random() * 40) + 60,
-        snsTrends: {
-          positive: Math.floor(Math.random() * 40) + 30,
-          neutral: Math.floor(Math.random() * 20) + 20,
-          negative: Math.floor(Math.random() * 20)
-        }
+        marketInsights: {
+          marketSize: "約50億円規模の市場",
+          growthRate: "年間15-20%の成長率",
+          competitorAnalysis: [
+            "主要競合3社が市場の80%を占有",
+            "新規参入が増加傾向",
+            "差別化が重要な成功要因"
+          ],
+          risks: [
+            "技術の急速な変化",
+            "規制環境の変化",
+            "新規参入による競争激化"
+          ],
+          opportunities: [
+            "未開拓の市場セグメント",
+            "技術革新による新しい用途",
+            "グローバル展開の可能性"
+          ]
+        },
+        recommendations: [
+          "ユーザーインターフェースの改善に注力",
+          "マーケティング戦略の見直し",
+          "新機能の開発を加速"
+        ]
       };
 
       // 分析結果をデータベースに保存
-      await db
-        .update(ideas)
-        .set({
-          analysis: analysisResult,
-          updatedAt: new Date(),
+      const newAnalysis = await db
+        .insert(analysis)
+        .values({
+          ideaId,
+          ideaScore: analysisResult.ideaScore,
+          scoreDetails: analysisResult.scoreDetails,
+          marketInsights: analysisResult.marketInsights,
+          recommendations: analysisResult.recommendations,
+          createdAt: new Date()
         })
-        .where(eq(ideas.id, ideaId));
+        .onConflictDoUpdate({
+          target: [analysis.ideaId],
+          set: {
+            ideaScore: analysisResult.ideaScore,
+            scoreDetails: analysisResult.scoreDetails,
+            marketInsights: analysisResult.marketInsights,
+            recommendations: analysisResult.recommendations
+          }
+        })
+        .returning();
 
-      res.json(analysisResult);
+      res.json(newAnalysis[0]);
     } catch (error) {
       console.error("Failed to analyze idea:", error);
       res.status(500).json({ error: "市場分析の更新に失敗しました" });
@@ -425,6 +460,7 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ error: "フェーズの更新に失敗しました" });
     }
   });
+
 
 
   return httpServer;

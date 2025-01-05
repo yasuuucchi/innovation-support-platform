@@ -77,7 +77,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {analysis && <IdeaScoreCard analysis={analysis} />}
+        {analysis && <IdeaScoreCard analysis={analysis} ideaId={ideaId} />}
 
         <ProjectRisks ideaId={ideaId} />
       </div>
@@ -89,7 +89,7 @@ export default function Dashboard() {
           <TabsTrigger value="interviews">インタビュー</TabsTrigger>
         </TabsList>
         <TabsContent value="market">
-          {analysis && <MarketAnalysis analysis={analysis} />}
+          {analysis && <MarketAnalysis analysis={analysis} ideaId={ideaId} />}
         </TabsContent>
         <TabsContent value="behavior">
           {behaviorLogs && <BehaviorTracker logs={behaviorLogs} />}
