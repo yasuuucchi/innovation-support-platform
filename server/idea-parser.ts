@@ -8,13 +8,21 @@ const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || '');
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 interface IdeaInfo {
-  title: string;
-  description: string;
-  targetMarket: string;
-  problemStatement: string;
-  solution: string;
-  businessModel: string;
+  name: string;
+  targetCustomer: string;
+  priceRange: string;
+  value: string;
+  competitors: string;
   currentPhase: string;
+  phaseProgress: {
+    idea_exploration: number;
+    customer_discovery: number;
+    customer_problem_fit: number;
+    problem_solution_fit: number;
+    solution_product_fit: number;
+    product_market_fit: number;
+    scale_up: number;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,25 +55,23 @@ async function extractIdeaInfoFromText(text: string): Promise<IdeaInfo> {
   const prompt = `
 以下のテキストからビジネスアイデアの情報を抽出し、JSONフォーマットで返してください。
 必要な情報：
-- title: アイデアのタイトル（短く簡潔に）
-- description: アイデアの詳細な説明
-- targetMarket: ターゲット市場
-- problemStatement: 解決する問題
-- solution: 解決方法
-- businessModel: ビジネスモデル
-- currentPhase: 現在のフェーズ（"ideation", "validation", "development", "growth"のいずれか）
+- name: アイデアのタイトル（短く簡潔に）
+- targetCustomer: ターゲット顧客層
+- priceRange: 価格帯
+- value: 提供価値
+- competitors: 競合他社
+- currentPhase: 現在のフェーズ（"idea_exploration", "customer_discovery", "customer_problem_fit", "problem_solution_fit", "solution_product_fit", "product_market_fit", "scale_up"のいずれか）
 
 テキスト:
 ${text}
 
 レスポンスは以下のJSONフォーマットで返してください:
 {
-  "title": "string",
-  "description": "string",
-  "targetMarket": "string",
-  "problemStatement": "string",
-  "solution": "string",
-  "businessModel": "string",
+  "name": "string",
+  "targetCustomer": "string",
+  "priceRange": "string",
+  "value": "string",
+  "competitors": "string",
   "currentPhase": "string"
 }
 `;
@@ -82,11 +88,21 @@ ${text}
     }
 
     const extractedData = JSON.parse(jsonMatch[0]);
+    const now = new Date();
 
     return {
       ...extractedData,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      phaseProgress: {
+        idea_exploration: 0,
+        customer_discovery: 0,
+        customer_problem_fit: 0,
+        problem_solution_fit: 0,
+        solution_product_fit: 0,
+        product_market_fit: 0,
+        scale_up: 0
+      },
+      createdAt: now,
+      updatedAt: now
     };
   } catch (error) {
     console.error("Failed to extract idea info:", error);
@@ -134,16 +150,18 @@ export async function extractIdeaFromText(text: string): Promise<IdeaInfo> {
 // 抽出したアイデアを保存
 export async function saveExtractedIdea(ideaInfo: IdeaInfo) {
   try {
+    // ユーザーIDはテスト用に1を使用（実際の実装では認証システムから取得する必要があります）
     const [newIdea] = await db.insert(ideas).values({
-      title: ideaInfo.title,
-      description: ideaInfo.description,
-      targetMarket: ideaInfo.targetMarket,
-      problemStatement: ideaInfo.problemStatement,
-      solution: ideaInfo.solution,
-      businessModel: ideaInfo.businessModel,
+      name: ideaInfo.name,
+      targetCustomer: ideaInfo.targetCustomer,
+      priceRange: ideaInfo.priceRange,
+      value: ideaInfo.value,
+      competitors: ideaInfo.competitors,
       currentPhase: ideaInfo.currentPhase,
+      phaseProgress: ideaInfo.phaseProgress,
       createdAt: ideaInfo.createdAt,
-      updatedAt: ideaInfo.updatedAt
+      updatedAt: ideaInfo.updatedAt,
+      userId: 1 // テスト用の固定値
     }).returning();
 
     return newIdea;
