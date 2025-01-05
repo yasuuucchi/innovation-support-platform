@@ -25,15 +25,15 @@ interface ProjectStatusProps {
 export default function ProjectStatus({ idea }: ProjectStatusProps) {
   const currentPhaseIndex = phases.findIndex(p => p.id === idea.currentPhase);
   const progress = idea.phaseProgress as Record<string, number>;
-  
+
   // 全体の進捗率を計算
   const totalProgress = Object.values(progress).reduce((sum, value) => sum + value, 0) / phases.length;
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>
-          <CardTitle>プロジェクト進捗状況</CardTitle>
+          <CardTitle className="text-xl">{idea.name}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -43,7 +43,7 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
                 <span>全体の進捗</span>
                 <span>{Math.round(totalProgress)}%</span>
               </div>
-              <Progress value={totalProgress} />
+              <Progress value={totalProgress} className="h-2" />
             </div>
 
             {/* フェーズ別の進捗状況 */}
@@ -55,7 +55,7 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
                 return (
                   <div
                     key={phase.id}
-                    className={`p-4 rounded-lg border ${
+                    className={`p-4 rounded-lg border transition-colors ${
                       isCurrentPhase ? "border-primary bg-primary/5" : "border-border"
                     }`}
                   >
@@ -68,7 +68,10 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
                         {phaseProgress}%
                       </span>
                     </div>
-                    <Progress value={phaseProgress} className="h-2" />
+                    <Progress 
+                      value={phaseProgress} 
+                      className={`h-2 ${phase.color.replace('bg-', 'bg-opacity-20')}`}
+                    />
                   </div>
                 );
               })}
