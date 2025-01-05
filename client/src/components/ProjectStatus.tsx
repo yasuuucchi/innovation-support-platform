@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { Idea } from "@db/schema";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, TrendingUp, Users, Target } from "lucide-react";
 
 interface Phase {
   id: string;
@@ -67,11 +67,13 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
 
           {/* KPIと進捗指標 */}
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="p-2 bg-muted rounded">
+            <div className="p-2 bg-muted rounded flex items-center gap-2">
+              <Users className="h-4 w-4"/>
               <div className="text-muted-foreground">インタビュー</div>
               <div className="font-medium">{kpiData.interviews}件</div>
             </div>
-            <div className="p-2 bg-muted rounded">
+            <div className="p-2 bg-muted rounded flex items-center gap-2">
+              <TrendingUp className="h-4 w-4"/>
               <div className="text-muted-foreground">成功率</div>
               <div className="font-medium">{kpiData.successRate}%</div>
             </div>
