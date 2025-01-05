@@ -63,19 +63,23 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="w-full h-[400px]">
+          <div className="w-full h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                layout="vertical"
                 data={phaseStats}
-                margin={{ top: 5, right: 30, left: 220, bottom: 5 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
-                <XAxis type="number" domain={[0, 100]} />
-                <YAxis
-                  type="category"
+                <XAxis 
                   dataKey="name"
-                  width={200}
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                  interval={0}
                   tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                  domain={[0, 100]}
+                  label={{ value: '進捗率 (%)', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip
                   formatter={(value, name) => [`${value}%`, '進捗率']}
@@ -85,7 +89,7 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
                   dataKey="progress"
                   fill="#8884d8"
                   background={{ fill: "#eee" }}
-                  radius={[0, 4, 4, 0]}
+                  radius={[4, 4, 0, 0]}
                 >
                   {phaseStats.map((entry, index) => (
                     <Bar
