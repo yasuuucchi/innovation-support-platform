@@ -53,7 +53,7 @@ export default function IdeaImport() {
         title: "成功",
         description: "アイデアを登録しました",
       });
-      setLocation(`/projects/${newIdea.id}`);
+      setLocation(`/dashboard/${newIdea.id}`);
     } catch (error: unknown) {
       toast({
         title: "エラー",
@@ -109,7 +109,7 @@ export default function IdeaImport() {
         title: "成功",
         description: "アイデアを登録しました",
       });
-      setLocation(`/projects/${newIdea.id}`);
+      setLocation(`/dashboard/${newIdea.id}`);
     } catch (error: unknown) {
       toast({
         title: "エラー",
