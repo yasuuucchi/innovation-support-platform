@@ -7,7 +7,8 @@ import MarketAnalysis from "@/components/MarketAnalysis";
 import BehaviorTracker from "@/components/BehaviorTracker";
 import InterviewForm from "@/components/InterviewForm";
 import InterviewResults from "@/components/InterviewResults";
-import type { Idea, Analysis, BehaviorLog, Interview } from "@/types";
+import ProjectRisks from "@/components/ProjectRisks";
+import type { Idea, Analysis, BehaviorLog, Interview } from "@db/schema";
 
 export default function Dashboard() {
   const { id } = useParams();
@@ -77,6 +78,8 @@ export default function Dashboard() {
         </Card>
 
         {analysis && <IdeaScoreCard analysis={analysis} />}
+
+        <ProjectRisks ideaId={ideaId} />
       </div>
 
       <Tabs defaultValue="market" className="space-y-4">
