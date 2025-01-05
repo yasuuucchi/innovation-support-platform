@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import type { Idea } from "@db/schema";
 import { AlertCircle, TrendingUp, Users, Target } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const phases = [
-  { id: "idea_exploration", name: "Idea Exploration（アイデア探索）", color: "bg-blue-500" },
-  { id: "customer_discovery", name: "Customer Discovery（顧客探索）", color: "bg-green-500" },
-  { id: "customer_problem_fit", name: "Customer/Problem Fit（課題適合）", color: "bg-yellow-500" },
-  { id: "problem_solution_fit", name: "Problem/Solution Fit（解決策適合）", color: "bg-orange-500" },
-  { id: "solution_product_fit", name: "Solution/Product Fit（製品実現性）", color: "bg-red-500" },
-  { id: "product_market_fit", name: "Product/Market Fit（市場適合性）", color: "bg-purple-500" },
-  { id: "scale_up", name: "Scale-Up（スケールアップ）", color: "bg-pink-500" }
+  { id: "idea_exploration", name: "Idea Exploration（アイデア探索）", color: "#3B82F6" }, // blue-500
+  { id: "customer_discovery", name: "Customer Discovery（顧客探索）", color: "#22C55E" }, // green-500
+  { id: "customer_problem_fit", name: "Customer/Problem Fit（課題適合）", color: "#EAB308" }, // yellow-500
+  { id: "problem_solution_fit", name: "Problem/Solution Fit（解決策適合）", color: "#F97316" }, // orange-500
+  { id: "solution_product_fit", name: "Solution/Product Fit（製品実現性）", color: "#EF4444" }, // red-500
+  { id: "product_market_fit", name: "Product/Market Fit（市場適合性）", color: "#A855F7" }, // purple-500
+  { id: "scale_up", name: "Scale-Up（スケールアップ）", color: "#EC4899" } // pink-500
 ];
 
 interface ProjectDashboardProps {
@@ -18,17 +18,25 @@ interface ProjectDashboardProps {
 }
 
 export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
-  // フェーズごとのプロジェクト数を計算
-  const phaseStats = phases.map((phase) => ({
-    ...phase,
-    count: ideas.filter((idea) => idea.currentPhase === phase.id).length,
-    progress: Math.round(
-      (ideas
-        .filter((idea) => idea.currentPhase === phase.id)
-        .reduce((sum, idea) => sum + (idea.phaseProgress as any)[phase.id], 0) /
-        Math.max(ideas.filter((idea) => idea.currentPhase === phase.id).length, 1)) * 100
-    ),
-  }));
+  // フェーズごとのプロジェクト数とプログレスを計算
+  const phaseStats = phases.map((phase) => {
+    const phaseIdeas = ideas.filter((idea) => idea.currentPhase === phase.id);
+    const count = phaseIdeas.length;
+    const progress = Math.round(
+      (phaseIdeas.reduce(
+        (sum, idea) => sum + ((idea.phaseProgress as any)[phase.id] || 0),
+        0
+      ) /
+        Math.max(count, 1))
+    );
+
+    return {
+      name: phase.name,
+      progress: progress,
+      count: count,
+      color: phase.color
+    };
+  });
 
   // 全体の進捗率を計算
   const totalProgress = Math.round(
@@ -37,7 +45,7 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
       return (
         sum +
         (phaseIdeas.reduce(
-          (phaseSum, idea) => phaseSum + (idea.phaseProgress as any)[phase.id],
+          (phaseSum, idea) => phaseSum + ((idea.phaseProgress as any)[phase.id] || 0),
           0
         ) /
           Math.max(phaseIdeas.length, 1))
@@ -55,26 +63,40 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {phases.map((phase) => {
-              const stat = phaseStats.find((s) => s.id === phase.id);
-              if (!stat) return null;
-
-              return (
-                <div key={phase.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${phase.color}`} />
-                      <span className="font-medium">{phase.name}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {stat.count}個のプロジェクト
-                    </div>
-                  </div>
-                  <Progress value={stat.progress} className="h-2" />
-                </div>
-              );
-            })}
+          <div className="w-full h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                layout="vertical"
+                data={phaseStats}
+                margin={{ top: 5, right: 30, left: 220, bottom: 5 }}
+              >
+                <XAxis type="number" domain={[0, 100]} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={200}
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip
+                  formatter={(value, name) => [`${value}%`, '進捗率']}
+                  labelFormatter={(label) => `${label} (${phaseStats.find(p => p.name === label)?.count}個のプロジェクト)`}
+                />
+                <Bar
+                  dataKey="progress"
+                  fill="#8884d8"
+                  background={{ fill: "#eee" }}
+                  radius={[0, 4, 4, 0]}
+                >
+                  {phaseStats.map((entry, index) => (
+                    <Bar
+                      key={`bar-${index}`}
+                      dataKey="progress"
+                      fill={entry.color}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
