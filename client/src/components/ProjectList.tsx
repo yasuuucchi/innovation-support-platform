@@ -30,7 +30,7 @@ export default function ProjectList() {
   });
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPhase, setSelectedPhase] = useState<string>("");
+  const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
 
   // フィルタリングされたプロジェクトリスト
   const filteredIdeas = ideas.filter((idea) => {
@@ -73,14 +73,13 @@ export default function ProjectList() {
           />
         </div>
         <Select
-          value={selectedPhase}
+          value={selectedPhase || undefined}
           onValueChange={setSelectedPhase}
         >
           <SelectTrigger className="w-[300px]">
             <SelectValue placeholder="フェーズで絞り込み" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全てのフェーズ</SelectItem>
             {phaseStats.map((phase) => (
               <SelectItem key={phase.id} value={phase.id}>
                 {phase.name} ({phase.count})

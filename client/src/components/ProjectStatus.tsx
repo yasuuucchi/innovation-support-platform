@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { Idea } from "@db/schema";
+import { AlertCircle } from "lucide-react";
 
 interface Phase {
   id: string;
@@ -28,6 +29,13 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
 
   // 全体の進捗率を計算
   const totalProgress = Object.values(progress).reduce((sum, value) => sum + value, 0) / phases.length;
+
+  // ダミーのKPIデータ（実際のアプリケーションでは実データを使用）
+  const kpiData = {
+    interviews: Math.floor(Math.random() * 100),
+    successRate: Math.floor(Math.random() * 100),
+    risk: Math.random() > 0.7,
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
@@ -57,15 +65,35 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
             />
           </div>
 
+          {/* KPIと進捗指標 */}
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="p-2 bg-muted rounded">
+              <div className="text-muted-foreground">インタビュー</div>
+              <div className="font-medium">{kpiData.interviews}件</div>
+            </div>
+            <div className="p-2 bg-muted rounded">
+              <div className="text-muted-foreground">成功率</div>
+              <div className="font-medium">{kpiData.successRate}%</div>
+            </div>
+          </div>
+
+          {/* リスクアラート */}
+          {kpiData.risk && (
+            <div className="flex items-center gap-2 text-sm text-yellow-600 bg-yellow-50 p-2 rounded">
+              <AlertCircle className="h-4 w-4" />
+              <span>リスク要因が検出されました</span>
+            </div>
+          )}
+
           {/* その他の情報 */}
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground border-t pt-4">
             <div className="flex justify-between mb-1">
               <span>ターゲット顧客:</span>
-              <span>{idea.targetCustomer}</span>
+              <span className="truncate ml-2">{idea.targetCustomer}</span>
             </div>
             <div className="flex justify-between">
               <span>価格帯:</span>
-              <span>{idea.priceRange}</span>
+              <span className="truncate ml-2">{idea.priceRange}</span>
             </div>
           </div>
         </div>
