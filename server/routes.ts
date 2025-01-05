@@ -10,6 +10,79 @@ import MemoryStore from "memorystore";
 import passport from "./auth";
 import bcrypt from "bcryptjs";
 
+// ダミーの行動ログデータを生成する関数
+function generateDummyBehaviorLogs(ideaId: number) {
+  const eventTypes = [
+    "page_view",
+    "button_click",
+    "form_submit",
+    "sign_up",
+    "feature_usage"
+  ];
+
+  const now = new Date();
+  const logs = [];
+
+  // 過去7日分のログを生成
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+
+    // 1日あたり3-8個のランダムなイベントを生成
+    const eventsCount = Math.floor(Math.random() * 6) + 3;
+
+    for (let j = 0; j < eventsCount; j++) {
+      const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+      let eventData = {};
+
+      switch (eventType) {
+        case "page_view":
+          eventData = {
+            path: ["/dashboard", "/analytics", "/settings"][Math.floor(Math.random() * 3)],
+            duration: Math.floor(Math.random() * 300) + 30
+          };
+          break;
+        case "button_click":
+          eventData = {
+            buttonId: ["save", "analyze", "export"][Math.floor(Math.random() * 3)],
+            context: "main_dashboard"
+          };
+          break;
+        case "form_submit":
+          eventData = {
+            formType: ["feedback", "settings", "profile"][Math.floor(Math.random() * 3)],
+            success: Math.random() > 0.1
+          };
+          break;
+        case "sign_up":
+          eventData = {
+            method: ["email", "google", "github"][Math.floor(Math.random() * 3)],
+            completed: Math.random() > 0.2
+          };
+          break;
+        case "feature_usage":
+          eventData = {
+            featureId: ["analysis", "export", "share"][Math.floor(Math.random() * 3)],
+            duration: Math.floor(Math.random() * 180) + 20
+          };
+          break;
+      }
+
+      logs.push({
+        id: logs.length + 1,
+        ideaId,
+        eventType,
+        eventData,
+        createdAt: date.toISOString()
+      });
+    }
+  }
+
+  return logs.sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
   const SessionStore = MemoryStore(session);
@@ -152,13 +225,12 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // 行動ログのエンドポイントを更新
   app.get("/api/behavior-logs/:ideaId", async (req, res) => {
     try {
-      const logs = await db
-        .select()
-        .from(behaviorLogs)
-        .where(eq(behaviorLogs.ideaId, parseInt(req.params.ideaId)));
-      res.json(logs);
+      // ダミーデータを生成して返す
+      const dummyLogs = generateDummyBehaviorLogs(parseInt(req.params.ideaId));
+      res.json(dummyLogs);
     } catch (error) {
       console.error("Failed to fetch behavior logs:", error);
       res.status(500).json({ error: "Failed to fetch behavior logs" });
