@@ -13,7 +13,7 @@ interface Phase {
   color: string;
 }
 
-const phases: Phase[] = [
+export const phases: Phase[] = [
   { id: "idea_exploration", name: "Idea Exploration（アイデア探索）", color: "bg-blue-500" },
   { id: "customer_discovery", name: "Customer Discovery（顧客探索）", color: "bg-green-500" },
   { id: "customer_problem_fit", name: "Customer/Problem Fit（課題適合）", color: "bg-yellow-500" },
@@ -28,6 +28,7 @@ interface ProjectStatusProps {
 }
 
 export default function ProjectStatus({ idea }: ProjectStatusProps) {
+  // 残りのコードは変更なし
   const queryClient = useQueryClient();
   const currentPhaseIndex = phases.findIndex(p => p.id === idea.currentPhase);
   const currentPhase = phases[currentPhaseIndex] || phases[0]; // フォールバック用のデフォルトフェーズ
@@ -90,13 +91,6 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
       });
     },
   });
-
-  // ダミーのKPIデータ（実際のアプリケーションでは実データを使用）
-  const kpiData = {
-    interviews: Math.floor(Math.random() * 100),
-    successRate: Math.floor(Math.random() * 100),
-    risk: Math.random() > 0.7,
-  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
@@ -161,17 +155,17 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
             <div className="p-2 bg-muted rounded flex items-center gap-2">
               <Users className="h-4 w-4"/>
               <div className="text-muted-foreground">インタビュー</div>
-              <div className="font-medium">{kpiData.interviews}件</div>
+              <div className="font-medium">{Math.floor(Math.random() * 100)}件</div>
             </div>
             <div className="p-2 bg-muted rounded flex items-center gap-2">
               <TrendingUp className="h-4 w-4"/>
               <div className="text-muted-foreground">成功率</div>
-              <div className="font-medium">{kpiData.successRate}%</div>
+              <div className="font-medium">{Math.floor(Math.random() * 100)}%</div>
             </div>
           </div>
 
           {/* リスクアラート */}
-          {kpiData.risk && (
+          {Math.random() > 0.7 && (
             <div className="flex items-center gap-2 text-sm text-yellow-600 bg-yellow-50 p-2 rounded">
               <AlertCircle className="h-4 w-4" />
               <span>リスク要因が検出されました</span>

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import type { Idea } from "@db/schema";
 import { AlertCircle, TrendingUp, Users, Target } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import ProjectHeatmap from "./ProjectHeatmap";
 
 const phases = [
   { id: "idea_exploration", name: "Idea Exploration（アイデア探索）", color: "#3B82F6" }, // blue-500
@@ -101,6 +102,9 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* プロジェクトヒートマップを追加 */}
+      <ProjectHeatmap ideas={ideas} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
