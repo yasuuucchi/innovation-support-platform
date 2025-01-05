@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { Idea } from "@db/schema";
 import { AlertCircle, TrendingUp, Users, Target } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const phases = [
   { id: "idea_exploration", name: "Idea Exploration（アイデア探索）", color: "#3B82F6" }, // blue-500
@@ -68,6 +68,7 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
               <BarChart
                 data={phaseStats}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                style={{ fill: "var(--background)" }}
               >
                 <XAxis
                   dataKey="name"
@@ -84,16 +85,25 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
                 <Tooltip
                   formatter={(value, name) => [`${value}%`, '進捗率']}
                   labelFormatter={(label) => `${label} (${phaseStats.find(p => p.name === label)?.count}個のプロジェクト)`}
+                  contentStyle={{
+                    backgroundColor: "var(--background)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "var(--radius)",
+                  }}
                 />
                 <Bar
                   dataKey="progress"
                   radius={[4, 4, 0, 0]}
                 >
                   {phaseStats.map((entry, index) => (
-                    <Cell
+                    <rect
                       key={`cell-${index}`}
                       fill={entry.color}
-                      background={{ fill: entry.color, fillOpacity: 0.1 }}
+                      fillOpacity={0.8}
+                      x={0}
+                      y={0}
+                      width="100%"
+                      height="100%"
                     />
                   ))}
                 </Bar>
