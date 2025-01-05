@@ -45,7 +45,7 @@ export default function MarketAnalysis({ analysis, ideaId }: MarketAnalysisProps
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/ideas/${ideaId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/analysis/${ideaId}`] });
       toast({
         title: "更新完了",
         description: "市場分析が更新されました",
@@ -91,9 +91,9 @@ export default function MarketAnalysis({ analysis, ideaId }: MarketAnalysisProps
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>総合評価スコア</CardTitle>
+              <CardTitle>市場分析</CardTitle>
               <CardDescription>
-                {analysis.ideaScore}/100点
+                総合評価スコア: {analysis.ideaScore}/100点
               </CardDescription>
             </div>
             <Button
