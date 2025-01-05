@@ -91,16 +91,17 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
                     borderRadius: "var(--radius)",
                   }}
                 />
-                <Bar
-                  dataKey="progress"
-                  radius={[4, 4, 0, 0]}
-                  fill="currentColor"
-                >
-                  {phaseStats.map((entry, index) => ({
-                    fill: entry.color,
-                    fillOpacity: 0.8
-                  }))}
-                </Bar>
+                {phaseStats.map((stat, index) => (
+                  <Bar
+                    key={stat.name}
+                    dataKey="progress"
+                    fill={stat.color}
+                    fillOpacity={0.8}
+                    radius={[4, 4, 0, 0]}
+                    stackId="a"
+                    data={[stat]}
+                  />
+                ))}
               </BarChart>
             </ResponsiveContainer>
           </div>
