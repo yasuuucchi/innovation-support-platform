@@ -30,55 +30,46 @@ export default function ProjectStatus({ idea }: ProjectStatusProps) {
   const totalProgress = Object.values(progress).reduce((sum, value) => sum + value, 0) / phases.length;
 
   return (
-    <div className="space-y-6">
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <CardTitle className="text-xl">{idea.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* 全体の進捗バー */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>全体の進捗</span>
-                <span>{Math.round(totalProgress)}%</span>
-              </div>
-              <Progress value={totalProgress} className="h-2" />
+    <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+      <CardHeader>
+        <CardTitle className="text-xl line-clamp-2">{idea.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {/* 全体の進捗バー */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>全体の進捗</span>
+              <span>{Math.round(totalProgress)}%</span>
             </div>
+            <Progress value={totalProgress} className="h-2" />
+          </div>
 
-            {/* フェーズ別の進捗状況 */}
-            <div className="space-y-3">
-              {phases.map((phase, index) => {
-                const isCurrentPhase = index === currentPhaseIndex;
-                const phaseProgress = progress[phase.id] || 0;
+          {/* 現在のフェーズ */}
+          <div className="p-4 rounded-lg border transition-colors border-primary bg-primary/5">
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-3 h-3 rounded-full ${phases[currentPhaseIndex].color}`} />
+              <span className="font-medium">{phases[currentPhaseIndex].name}</span>
+            </div>
+            <Progress 
+              value={progress[idea.currentPhase] || 0} 
+              className={`h-2 ${phases[currentPhaseIndex].color.replace('bg-', 'bg-opacity-20')}`}
+            />
+          </div>
 
-                return (
-                  <div
-                    key={phase.id}
-                    className={`p-4 rounded-lg border transition-colors ${
-                      isCurrentPhase ? "border-primary bg-primary/5" : "border-border"
-                    }`}
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${phase.color}`} />
-                        <span className="font-medium">{phase.name}</span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {phaseProgress}%
-                      </span>
-                    </div>
-                    <Progress 
-                      value={phaseProgress} 
-                      className={`h-2 ${phase.color.replace('bg-', 'bg-opacity-20')}`}
-                    />
-                  </div>
-                );
-              })}
+          {/* その他の情報 */}
+          <div className="text-sm text-muted-foreground">
+            <div className="flex justify-between mb-1">
+              <span>ターゲット顧客:</span>
+              <span>{idea.targetCustomer}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>価格帯:</span>
+              <span>{idea.priceRange}</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
