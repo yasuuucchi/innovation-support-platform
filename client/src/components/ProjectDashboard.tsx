@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { Idea } from "@db/schema";
 import { AlertCircle, TrendingUp, Users, Target } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const phases = [
   { id: "idea_exploration", name: "Idea Exploration（アイデア探索）", color: "#3B82F6" }, // blue-500
@@ -91,17 +91,11 @@ export default function ProjectDashboard({ ideas }: ProjectDashboardProps) {
                     borderRadius: "var(--radius)",
                   }}
                 />
-                {phaseStats.map((stat, index) => (
-                  <Bar
-                    key={stat.name}
-                    dataKey="progress"
-                    fill={stat.color}
-                    fillOpacity={0.8}
-                    radius={[4, 4, 0, 0]}
-                    stackId="a"
-                    data={[stat]}
-                  />
-                ))}
+                <Bar dataKey="progress" radius={[4, 4, 0, 0]}>
+                  {phaseStats.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
