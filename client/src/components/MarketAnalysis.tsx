@@ -34,6 +34,7 @@ interface ScoreDetail {
 export default function MarketAnalysis({ analysis, ideaId }: MarketAnalysisProps) {
   const queryClient = useQueryClient();
 
+  // 市場分析更新のミューテーション
   const updateAnalysis = useMutation({
     mutationFn: async () => {
       const response = await fetch(`/api/ideas/${ideaId}/analyze`, {
