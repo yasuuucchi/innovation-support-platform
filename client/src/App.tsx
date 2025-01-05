@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import ProjectList from "@/components/ProjectList";
 import Dashboard from "@/pages/Dashboard";
 import Auth from "@/pages/Auth";
+import NewIdea from "@/pages/NewIdea";
 import { Toaster } from "@/components/ui/toaster";
 
 function App() {
@@ -24,6 +25,9 @@ function App() {
         </Route>
         <Route path="/dashboard/:id">
           {isAuthenticated ? <Dashboard /> : <Auth />}
+        </Route>
+        <Route path="/ideas/new">
+          {isAuthenticated ? <NewIdea /> : <Auth />}
         </Route>
         <Route component={NotFound} />
       </Switch>

@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import type { Idea } from "@/types";
+import type { Idea } from "@db/schema";
+import { Loader2 } from "lucide-react";
 
 interface IdeaFormProps {
   onSuccess: (idea: Idea) => void;
@@ -21,6 +22,8 @@ interface IdeaFormProps {
 
 export default function IdeaForm({ onSuccess }: IdeaFormProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
   const form = useForm({
     defaultValues: {
       name: "",
@@ -37,7 +40,8 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
         throw new Error("ログインが必要です");
       }
 
-      const response = await fetch("/api/ideas", {
+      // 1. まずアイデアを作成
+      const ideaResponse = await fetch("/api/ideas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -45,20 +49,52 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
           userId: user.id,
         }),
       });
-      if (!response.ok) throw new Error("アイデアの作成に失敗しました");
-      return response.json();
+
+      if (!ideaResponse.ok) {
+        throw new Error("アイデアの作成に失敗しました");
+      }
+
+      const idea = await ideaResponse.json();
+
+      // 2. 市場分析を実行
+      const analysisResponse = await fetch("/api/market-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ideaId: idea.id,
+          name: data.name,
+          targetCustomer: data.targetCustomer,
+          priceRange: data.priceRange,
+          value: data.value,
+          competitors: data.competitors,
+        }),
+      });
+
+      if (!analysisResponse.ok) {
+        throw new Error("市場分析の実行に失敗しました");
+      }
+
+      const analysis = await analysisResponse.json();
+
+      // アイデアと分析結果を返す
+      return {
+        ...idea,
+        analysis,
+      };
     },
     onSuccess: (data) => {
       toast({
         title: "成功",
-        description: "アイデアが作成されました",
+        description: "アイデアが作成され、市場分析が完了しました",
       });
+      // キャッシュを更新
+      queryClient.invalidateQueries({ queryKey: ["ideas"] });
       onSuccess(data);
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "エラー",
-        description: "アイデアの作成に失敗しました",
+        description: error.message || "アイデアの作成に失敗しました",
         variant: "destructive",
       });
     },
@@ -153,7 +189,14 @@ export default function IdeaForm({ onSuccess }: IdeaFormProps) {
           className="w-full"
           disabled={createIdea.isPending}
         >
-          {createIdea.isPending ? "作成中..." : "アイデアを作成"}
+          {createIdea.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              作成中...
+            </>
+          ) : (
+            "アイデアを作成"
+          )}
         </Button>
       </form>
     </Form>
